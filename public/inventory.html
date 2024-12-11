@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            font-size: 18px;
+            color: #333;
+        }
+        input, select, button {
+            margin: 5px 0;
+            padding: 10px;
+            font-size: 16px;
+        }
+        pre {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Inventory Management</h1>
+    <div id="auth-message"></div>
+
+    <!-- Add Item -->
+    <div class="section">
+        <h2>Add Item</h2>
+        <form id="add-item-form">
+            <input type="text" id="item-name" placeholder="Item Name" required>
+            <input type="text" id="category" placeholder="Category">
+            <input type="number" id="quantity" placeholder="Quantity" required>
+            <button type="submit">Add Item</button>
+        </form>
+        <pre id="add-item-response"></pre>
+    </div>
+
+    <!-- Get All Items -->
+    <div class="section">
+        <h2>Get All Items</h2>
+        <button id="get-items">Fetch Items</button>
+        <pre id="get-items-response"></pre>
+    </div>
+
+    <!-- Update Quantity -->
+    <div class="section">
+        <h2>Update Quantity</h2>
+        <form id="update-quantity-form">
+            <input type="number" id="update-item-id" placeholder="Item ID" required>
+            <input type="number" id="update-quantity" placeholder="Quantity" required>
+            <button type="submit">Update Quantity</button>
+        </form>
+        <pre id="update-quantity-response"></pre>
+    </div>
+
+    <!-- Delete Item -->
+    <div class="section">
+        <h2>Delete Item</h2>
+        <form id="delete-item-form">
+            <input type="number" id="delete-item-id" placeholder="Item ID" required>
+            <button type="submit">Delete Item</button>
+        </form>
+        <pre id="delete-item-response"></pre>
+    </div>
+
+    <!-- Sort Items -->
+    <div class="section">
+        <h2>Sort Items</h2>
+        <button id="sort-category">Sort by Category</button>
+        <button id="sort-quantity-asc">Sort by Quantity (Ascending)</button>
+        <button id="sort-quantity-desc">Sort by Quantity (Descending)</button>
+        <pre id="sort-response"></pre>
+    </div>
+
+    <div class="section">
+      <h2>View Logs</h2>
+      <button id="view-logs">Fetch Logs</button>
+      <pre id="logs-response"></pre>
+    </div>
+
+    <script>
+        const apiBaseUrl = 'http://localhost/OOP/src/routes';
+        const jwt = localStorage.getItem('jwt');
+
+        // Redirect if JWT is missing
+        if (!jwt) {
+            alert('Unauthorized! Redirecting to login page...');
+            window.location.href = 'auth.html';
+        } else {
+            document.getElementById('auth-message').innerText = 'Authenticated!';
+        }
+
+        // Add Item
+        document.getElementById('add-item-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const itemName = document.getElementById('item-name').value;
+            const category = document.getElementById('category').value || 'Miscellaneous';
+            const quantity = parseInt(document.getElementById('quantity').value);
+
+            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=addItem`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwt}`,
+                },
+                body: JSON.stringify({ item_name: itemName, category, quantity }),
+            });
+
+            const result = await response.json();
+            document.getElementById('add-item-response').textContent = JSON.stringify(result, null, 2);
+        });
+
+        // Get All Items
+        document.getElementById('get-items').addEventListener('click', async () => {
+            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=getAllItems`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${jwt}` },
+            });
+
+            const result = await response.json();
+            document.getElementById('get-items-response').textContent = JSON.stringify(result, null, 2);
+        });
+
+        // Update Quantity
+        document.getElementById('update-quantity-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const itemId = parseInt(document.getElementById('update-item-id').value);
+            const quantity = parseInt(document.getElementById('update-quantity').value);
+
+            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=updateQuantity`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwt}`,
+                },
+                body: JSON.stringify({ item_id: itemId, quantity }),
+            });
+
+            const result = await response.json();
+            document.getElementById('update-quantity-response').textContent = JSON.stringify(result, null, 2);
+        });
+
+        // Delete Item
+        document.getElementById('delete-item-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const itemId = parseInt(document.getElementById('delete-item-id').value);
+
+            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=deleteItem`, {
+                method: 'DELETE',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwt}`,
+                },
+                body: JSON.stringify({ item_id: itemId }),
+            });
+
+            const result = await response.json();
+            document.getElementById('delete-item-response').textContent = JSON.stringify(result, null, 2);
+        });
+
+        // Sort Items
+        document.getElementById('sort-category').addEventListener('click', async () => {
+            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=sortCategories`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${jwt}` },
+            });
+
+            const result = await response.json();
+            document.getElementById('sort-response').textContent = JSON.stringify(result, null, 2);
+        });
+
+        document.getElementById('sort-quantity-asc').addEventListener('click', async () => {
+            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=sortQuantity&order=asc`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${jwt}` },
+            });
+
+            const result = await response.json();
+            document.getElementById('sort-response').textContent = JSON.stringify(result, null, 2);
+        });
+
+        document.getElementById('sort-quantity-desc').addEventListener('click', async () => {
+            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=sortQuantity&order=desc`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${jwt}` },
+            });
+
+            const result = await response.json();
+            document.getElementById('sort-response').textContent = JSON.stringify(result, null, 2);
+        });
+
+        document.getElementById('view-logs').addEventListener('click', async () => {
+            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=getLogs`, {
+               method: 'GET',
+              headers: { 'Authorization': `Bearer ${jwt}` },
+            });
+
+            const result = await response.json();
+            document.getElementById('logs-response').textContent = JSON.stringify(result, null, 2);
+        });
+    </script>
+</body>
+</html>
