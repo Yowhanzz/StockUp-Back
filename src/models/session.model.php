@@ -11,8 +11,6 @@ class SessionModel implements SessionInterface
     {
         $this->pdo = (new Connection())->connect();
     }
-
-    // Fetch sessions by user ID
     public function getSessionsByUserId($user_id)
     {
         $sql = "SELECT us.user_id, u.full_name, us.time_in, us.time_out
@@ -24,8 +22,6 @@ class SessionModel implements SessionInterface
         $stmt->execute();
         return $stmt->fetchAll();
     }
-
-    // Fetch sessions by full name (supports partial matches), returning only user_id, full_name, time_in, time_out
     public function getSessionsByFullName($full_name)
     {
         $sql = "SELECT us.user_id, u.full_name, us.time_in, us.time_out
@@ -38,8 +34,6 @@ class SessionModel implements SessionInterface
         $stmt->execute();
         return $stmt->fetchAll();
     }
-
-    // Fetch all sessions, returning only user_id, full_name, time_in, time_out
     public function getAllSessions()
     {
         $sql = "SELECT us.user_id, u.full_name, us.time_in, us.time_out

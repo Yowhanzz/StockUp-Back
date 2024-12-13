@@ -20,11 +20,6 @@ class ResponseMethods implements ResponseInterface
             "prepared_by" => "Code Benders"
         );
     }
-
-    /**
-     * Handles requests to undefined or invalid endpoints.
-     * Sends a JSON response with a 403 Forbidden status.
-     */
     public function notFound()
     {
         http_response_code(403);

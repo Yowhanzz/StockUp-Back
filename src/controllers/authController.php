@@ -24,12 +24,11 @@ class AuthController
         if (!$username || !$password) {
             return json_encode(['status' => 'error', 'message' => 'Missing username or password']);
         }
-    
-        // Authenticate the user
+
         $response = $this->authModel->login($username, $password);
     
         if ($response['status'] === 'success' && isset($response['data'])) {
-            // Extract user details from the response
+
             $user_id = $response['data']['user_id'] ?? null;
             $full_name = $response['data']['full_name'] ?? null;
     
@@ -44,26 +43,25 @@ class AuthController
             return json_encode(['status' => 'error', 'message' => 'Missing user details.']);
         }
     
-        // Return the original login response if authentication fails
         return json_encode($response);
     }    
 
     public function logout()
     {
-        // Get the authentication token from the cookie
+
         $authToken = $_COOKIE['auth_token'] ?? null;
     
         if ($authToken) {
             try {
-                // Decode the JWT token
+
                 $decoded = JWT::decode($authToken, new Key(SECRET_KEY, 'HS256'));
                 $user_id = $decoded->data->user_id;
     
-                // End the session for the user
+
                 if ($this->authModel->endSession($user_id)) {
-                    // Blacklist the token
+
                     if ($this->authModel->blacklistToken($authToken)) {
-                        // Expire the cookie
+
                         setcookie('auth_token', '', [
                             'expires' => time() - 3600,
                             'path' => '/',

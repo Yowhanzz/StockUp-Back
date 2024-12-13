@@ -16,7 +16,6 @@ class InventoryModel implements InventoryInterface
         $this->db = $connection->connect();
     }
 
-    // Create new item (Admin only)
     public function createItem($itemName, $brand, $category, $quantity)
     {
         $sql = "INSERT INTO inventory (item_name, brand, category, quantity) VALUES (:item_name, :brand, :category, :quantity)";
@@ -30,7 +29,6 @@ class InventoryModel implements InventoryInterface
         return ['status' => 'success', 'message' => 'Item added successfully'];
     }
 
-    // Read all items
     public function readItems()
     {
         $sql = "SELECT * FROM inventory";
@@ -38,7 +36,6 @@ class InventoryModel implements InventoryInterface
         return $stmt->fetchAll();
     }
 
-    // Update item quantity (Admin and Staff)
     public function updateQuantity($itemId, $quantity)
     {
         if ($quantity >= 0 && $quantity <= 20) {
@@ -66,16 +63,11 @@ class InventoryModel implements InventoryInterface
 
 public function deleteItem($itemId)
 {
-    // Check if the item exists in the inventory
     $sql = "SELECT * FROM inventory WHERE item_id = :item_id";
     $stmt = $this->db->prepare($sql);
     $stmt->execute([':item_id' => $itemId]);
     $item = $stmt->fetch();
 
-    // Log the result of the fetch operation to see if the item was found
-    error_log(print_r($item, true));  // Logs to the PHP error log
-
-    // If the item doesn't exist, return an error
     if (!$item) {
         return [
             'status' => 'error',
@@ -83,7 +75,6 @@ public function deleteItem($itemId)
         ];
     }
 
-    // Archive the item before deletion
     $archiveSql = "INSERT INTO archive_items (item_id, item_name, brand, category, quantity, status) 
                    VALUES (:item_id, :item_name, :category, :quantity, :status)";
     $archiveStmt = $this->db->prepare($archiveSql);
@@ -96,7 +87,6 @@ public function deleteItem($itemId)
         ':status' => $item['status']
     ]);
 
-    // Delete the item from the inventory
     $deleteSql = "DELETE FROM inventory WHERE item_id = :item_id";
     $deleteStmt = $this->db->prepare($deleteSql);
     $deleteStmt->execute([':item_id' => $itemId]);
@@ -109,25 +99,20 @@ public function deleteItem($itemId)
 
 public function sortItemsByCategory($specificCategory = null)
 {
-    // Define the allowed categories
     $allowedCategories = ['Writing Supplies', 'Paper Materials', 'Arts & Crafts', 'Organizational Tools', 'Miscellaneous'];
 
     if ($specificCategory && in_array($specificCategory, $allowedCategories)) {
-        // If a specific category is provided and valid, fetch items from that category
+        
         $sql = "SELECT * FROM inventory WHERE category = :category ORDER BY category";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':category' => $specificCategory]);
     } else {
-        // Otherwise, fetch all items sorted by category
         $sql = "SELECT * FROM inventory ORDER BY category";
         $stmt = $this->db->query($sql);
     }
-
     return $stmt->fetchAll();
 }
 
-
-    // Get items by individual stock statuses
     public function getItemsByStatus($status)
     {
         $sql = "SELECT * FROM inventory WHERE status = :status";
@@ -135,28 +120,22 @@ public function sortItemsByCategory($specificCategory = null)
         $stmt->execute([':status' => $status]);
         return $stmt->fetchAll();
     }
-
-    // Sort items by quantity in descending order
     public function getItemsByQuantityDesc()
     {
         $sql = "SELECT * FROM inventory ORDER BY quantity DESC";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll();
     }
-
-    // Sort items by quantity in ascending order
     public function getItemsByQuantityAsc()
     {
         $sql = "SELECT * FROM inventory ORDER BY quantity ASC";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll();
     }
-
     public function updateQuantityValue($item_id, $new_quantity)
     {
     $pdo = (new Connection())->connect();
 
-    // Fetch the current quantity before updating
     $sqlFetch = "SELECT quantity FROM inventory WHERE id = :item_id";
     $stmtFetch = $pdo->prepare($sqlFetch);
     $stmtFetch->bindParam(':item_id', $item_id, PDO::PARAM_INT);
@@ -190,21 +169,17 @@ public function sortItemsByCategory($specificCategory = null)
             throw new Exception("Failed to log user action: Invalid JWT.");
         }
     }
-
     public function getAllUserLogs()
-{
-    try {
-        $sql = "SELECT * FROM user_logs ORDER BY timestamp DESC";
-        $stmt = $this->db->query($sql);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Exception $e) {
-        error_log("Error fetching user logs: " . $e->getMessage());
-        return [
-            'status' => 'error',
-            'message' => 'Failed to retrieve user logs.'
-        ];
+    {
+        try {
+            $sql = "SELECT * FROM user_logs ORDER BY timestamp DESC";
+            $stmt = $this->db->query($sql);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            return [
+                'status' => 'error',
+                'message' => 'Failed to retrieve user logs.'
+            ];
+        }
     }
-}
-
-
 }

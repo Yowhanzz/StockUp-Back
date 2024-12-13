@@ -25,7 +25,6 @@ class AuthModel extends Connection implements AuthInterface
 
     public function createUser($full_name, $username, $password, $role = null)
     {
-    // Check if a role is provided, otherwise let the database default to 'staff'
     if ($role) {
         $sql = "INSERT INTO users (full_name, username, password, role) VALUES (:full_name, :username, :password, :role)";
     } else {
@@ -35,7 +34,6 @@ class AuthModel extends Connection implements AuthInterface
     $pdo = $this->connect();
     $stmt = $pdo->prepare($sql);
 
-    // Bind parameters
     $stmt->bindParam(':full_name', $full_name);
     $stmt->bindParam(':username', $username);
     $stmt->bindParam(':password', $password);
@@ -78,7 +76,6 @@ class AuthModel extends Connection implements AuthInterface
     
                 $jwt = JWT::encode($payload, $this->secret_key, 'HS256');
     
-                // Create a new session
                 $this->createSession($user['user_id'], $user['full_name']);
 
                 setcookie('auth_token', $jwt, [

@@ -34,10 +34,8 @@ class ArchiveModel
     public function retrieveArchivedItem($itemId)
     {
         try {
-            // Begin transaction
             $this->db->beginTransaction();
 
-            // Get the archived item
             $sqlSelect = "SELECT * FROM archive_items WHERE item_id = :item_id";
             $stmtSelect = $this->db->prepare($sqlSelect);
             $stmtSelect->execute([':item_id' => $itemId]);
@@ -47,7 +45,6 @@ class ArchiveModel
                 throw new Exception("Archived item not found.");
             }
 
-            // Insert into inventory
             $sqlInsert = "
                 INSERT INTO inventory (item_id, item_name, category, quantity, status) 
                 VALUES (:item_id, :item_name, :category, :quantity, :status)";
@@ -60,12 +57,10 @@ class ArchiveModel
                 ':status' => $archivedItem['status']
             ]);
 
-            // Delete from archive
             $sqlDelete = "DELETE FROM archive_items WHERE item_id = :item_id";
             $stmtDelete = $this->db->prepare($sqlDelete);
             $stmtDelete->execute([':item_id' => $itemId]);
 
-            // Commit transaction
             $this->db->commit();
 
             return [

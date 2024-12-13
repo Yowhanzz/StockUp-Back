@@ -22,26 +22,21 @@ class UserController
         return json_encode(['status' => 'error', 'message' => 'Missing required fields']);
     }
 
-    // Check if password and checkpassword match
     if ($password !== $checkPassword) {
         return json_encode(['status' => 'error', 'message' => 'Passwords do not match']);
     }
 
-    // Check if username already exists
     if ($this->authModel->userExists($username)) {
         return json_encode(['status' => 'error', 'message' => 'Username already taken']);
     }
 
-    // Validate password strength
     $passwordCheck = $this->checkPassword($password);
     if ($passwordCheck['status'] === 'error') {
         return json_encode($passwordCheck);
     }
 
-    // Hash the password using bcrypt
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
-    // Save user to database (role is optional)
     $result = $this->authModel->createUser($full_name, $username, $hashedPassword);
 
     if ($result) {
@@ -50,10 +45,6 @@ class UserController
 
     return json_encode(['status' => 'error', 'message' => 'Registration failed']);
 }
-
-/**
- * Validate password strength.
- */
 private function checkPassword($password)
 {
     if (strlen($password) < 8) {

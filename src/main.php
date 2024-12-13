@@ -13,19 +13,16 @@ require_once __DIR__ . '/helpers/permission.php';
 require_once __DIR__ . '/controllers/userController.php';
 require_once __DIR__ . '/controllers/authController.php';
 
-// Inventory-related files
 require_once __DIR__ . '/models/inventory.model.php';
 require_once __DIR__ . '/models/response.model.php';
 
 $inventoryModel = new InventoryModel();
 $response = new ResponseMethods();
 
-// Retrieve JWT from the cookie
 $jwt = $_COOKIE['auth_token'] ?? null;
 
-// If JWT exists in cookie, process further
 if ($jwt) {
-    // You might want to sanitize the token, especially when retrieved from user input or cookies
+
     $jwt = str_replace('Bearer ', '', $jwt);
 }
 

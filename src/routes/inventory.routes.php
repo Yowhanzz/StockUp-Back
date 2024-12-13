@@ -8,17 +8,15 @@ use Firebase\JWT\Key;
 $inventoryModel = new InventoryModel();
 $response = new ResponseMethods();
 
-// Check for JWT in cookies
 $jwt = $_COOKIE['auth_token'] ?? null;
 
 if (!$jwt) {
     echo json_encode(['status' => 'error', 'message' => 'Token not found']);
     exit();
 }
-
 function decodeJWT($jwt) {
     try {
-        // Decode and verify the JWT token
+
         $decoded = JWT::decode($jwt, new Key(SECRET_KEY, 'HS256'));
         return $decoded->data;
     } catch (Exception $e) {
@@ -27,7 +25,6 @@ function decodeJWT($jwt) {
     }
 }
 
-// Decode JWT from cookie
 $userData = decodeJWT($jwt);
 $action = $_GET['action'] ?? null;
 $requestMethod = $_SERVER['REQUEST_METHOD'];

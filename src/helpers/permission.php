@@ -23,13 +23,10 @@ class Permission
         }
 
         try {
-            // Decode the token
             $decoded = JWT::decode($authToken, new Key(SECRET_KEY, 'HS256'));
 
-            // Extract user role from the token payload
             $userRole = $decoded->data->role;
 
-            // Check if the role is blacklisted
             if (self::isTokenBlacklisted($authToken)) {
                 return [
                     'status' => 'error',
@@ -37,7 +34,6 @@ class Permission
                 ];
             }
 
-            // Check if the role matches the allowed roles
             if (in_array($userRole, $allowedRoles)) {
                 return [
                     'status' => 'success',
@@ -76,27 +72,24 @@ class Permission
         $authToken = $_COOKIE['auth_token'] ?? null;
 
         if (!$authToken) {
-            http_response_code(401); // Unauthorized
+            http_response_code(401);
             echo json_encode(['status' => 'error', 'message' => 'Authorization token is missing or invalid.']);
             exit();
         }
 
         try {
-            // Decode the JWT
             $decoded = JWT::decode($authToken, new Key(SECRET_KEY, 'HS256'));
             $role = $decoded->data->role ?? null;
 
-            // Check if the role exists and is allowed
             if (!$role || !in_array($role, $allowedRoles)) {
-                http_response_code(403); // Forbidden
+                http_response_code(403); 
                 echo json_encode(['status' => 'error', 'message' => 'Unauthorized role.']);
                 exit();
             }
 
-            // Role is authorized
             return true;
         } catch (Exception $e) {
-            http_response_code(401); // Unauthorized
+            http_response_code(401); 
             echo json_encode(['status' => 'error', 'message' => 'Invalid token: ' . $e->getMessage()]);
             exit();
         }
