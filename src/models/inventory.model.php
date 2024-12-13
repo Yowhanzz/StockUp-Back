@@ -17,12 +17,13 @@ class InventoryModel implements InventoryInterface
     }
 
     // Create new item (Admin only)
-    public function createItem($itemName, $category, $quantity)
+    public function createItem($itemName, $brand, $category, $quantity)
     {
-        $sql = "INSERT INTO inventory (item_name, category, quantity) VALUES (:item_name, :category, :quantity)";
+        $sql = "INSERT INTO inventory (item_name, brand, category, quantity) VALUES (:item_name, :brand, :category, :quantity)";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             ':item_name' => $itemName,
+            ':brand' => $brand,
             ':category' => $category,
             ':quantity' => $quantity,
         ]);
@@ -83,12 +84,13 @@ public function deleteItem($itemId)
     }
 
     // Archive the item before deletion
-    $archiveSql = "INSERT INTO archive_items (item_id, item_name, category, quantity, status) 
+    $archiveSql = "INSERT INTO archive_items (item_id, item_name, brand, category, quantity, status) 
                    VALUES (:item_id, :item_name, :category, :quantity, :status)";
     $archiveStmt = $this->db->prepare($archiveSql);
     $archiveStmt->execute([
         ':item_id' => $item['item_id'],
         ':item_name' => $item['item_name'],
+        ':brand' => $item['brand'],
         ':category' => $item['category'],
         ':quantity' => $item['quantity'],
         ':status' => $item['status']

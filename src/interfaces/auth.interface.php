@@ -10,8 +10,6 @@ interface AuthInterface {
 
   public function createSession($user_id, $full_name);
 
-  public function hasActiveSession($user_id);
-
   public function blacklistToken($token);
 
   public function endSession($user_id);

@@ -5,19 +5,15 @@ require_once __DIR__ . '/../helpers/permission.php';
 require_once __DIR__ . '/../controllers/authController.php';
 require_once __DIR__ . '/../models/session.model.php';
 
-$headers = apache_request_headers();
-$jwt = $headers['Authorization'] ?? null;
-
-if ($jwt) {
-    $jwt = str_replace('Bearer ', '', $jwt);
-}
+// Retrieve the JWT from the cookie
+$authToken = $_COOKIE['auth_token'] ?? null;
 
 // Check if the JWT is valid and the role is 'admin'
-if ($jwt) {
-    $authResult = Permission::authorizeRole($jwt, ['admin']);
+if ($authToken) {
+    $authResult = Permission::authorizeRole($authToken, ['admin']);
 
     if ($authResult['status'] !== 'success') {
-        echo json_encode($authResult);  // Return permission error if the user is not an admin
+        echo json_encode($authResult); // Return permission error if the user is not an admin
         exit;
     }
 }

@@ -7,15 +7,18 @@ use Firebase\JWT\Key;
 
 $inventoryModel = new InventoryModel();
 $response = new ResponseMethods();
-$headers = apache_request_headers();
-$jwt = $headers['Authorization'] ?? null;
 
-if ($jwt) {
-    $jwt = str_replace('Bearer ', '', $jwt);
+// Check for JWT in cookies
+$jwt = $_COOKIE['auth_token'] ?? null;
+
+if (!$jwt) {
+    echo json_encode(['status' => 'error', 'message' => 'Token not found']);
+    exit();
 }
 
 function decodeJWT($jwt) {
     try {
+        // Decode and verify the JWT token
         $decoded = JWT::decode($jwt, new Key(SECRET_KEY, 'HS256'));
         return $decoded->data;
     } catch (Exception $e) {
@@ -24,6 +27,7 @@ function decodeJWT($jwt) {
     }
 }
 
+// Decode JWT from cookie
 $userData = decodeJWT($jwt);
 $action = $_GET['action'] ?? null;
 $requestMethod = $_SERVER['REQUEST_METHOD'];
@@ -34,11 +38,12 @@ switch ($action) {
             Permission::checkRole($jwt, ['admin']);
             $data = json_decode(file_get_contents('php://input'), true);
             $item_name = $data['item_name'] ?? '';
+            $brand = $data['brand'] ?? '';
             $category = $data['category'] ?? 'Miscellaneous';
             $quantity = $data['quantity'] ?? 0;
 
             $inventoryModel->logUserAction($jwt, 'addItem');
-            $responsePayload = $inventoryModel->createItem($item_name, $category, $quantity);
+            $responsePayload = $inventoryModel->createItem($item_name, $brand, $category, $quantity);
 
             echo json_encode($response->responsePayload($responsePayload, 'success', 'Item added successfully.', 201));
         } else {
@@ -150,18 +155,18 @@ switch ($action) {
         }
         break;
 
-        case 'getAllUserLogs':
-            if ($requestMethod === 'GET') {
-                Permission::checkRole($jwt, ['admin']);
-    
-                $inventoryModel->logUserAction($jwt, 'getAllUserLogs');
-                $logs = $inventoryModel->getAllUserLogs();
-    
-                echo json_encode($response->responsePayload($logs, 'success', 'User logs retrieved successfully.', 200));
-            } else {
-                echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
-            }
-            break;
+    case 'getAllUserLogs':
+        if ($requestMethod === 'GET') {
+            Permission::checkRole($jwt, ['admin']);
+
+            $inventoryModel->logUserAction($jwt, 'getAllUserLogs');
+            $logs = $inventoryModel->getAllUserLogs();
+
+            echo json_encode($response->responsePayload($logs, 'success', 'User logs retrieved successfully.', 200));
+        } else {
+            echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
+        }
+        break;
 
     default:
         $response->notFound();

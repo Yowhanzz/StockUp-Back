@@ -1,5 +1,4 @@
 <?php
-
 require_once __DIR__ . '/../config/Connection.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../interfaces/auth.interface.php';
@@ -93,7 +92,7 @@ class AuthModel extends Connection implements AuthInterface
                 return [
                     'status' => 'success',
                     'token' => $jwt,
-                    'user' => [
+                    'data' => [
                         'user_id' => $user['user_id'],
                         'username' => $user['username'],
                         'full_name' => $user['full_name'],
@@ -154,5 +153,4 @@ class AuthModel extends Connection implements AuthInterface
 
     return $stmt->execute();
     }
-
 }

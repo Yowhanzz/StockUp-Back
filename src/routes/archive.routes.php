@@ -8,31 +8,38 @@ use Firebase\JWT\Key;
 
 $archiveModel = new ArchiveModel();
 $response = new ResponseMethods();
-$headers = apache_request_headers();
-$jwt = $headers['Authorization'] ?? null;
 
-if ($jwt) {
-    $jwt = str_replace('Bearer ', '', $jwt);
+$authToken = $_COOKIE['auth_token'] ?? null;
+
+if (!$authToken) {
+    echo json_encode([
+        'status' => 'error', 
+        'message' => 'Authorization token is missing. Make sure you are logged in and the auth_token cookie is set.'
+    ]);
+    exit();
 }
 
-function decodeJWT($jwt) {
+function decodeJWT($authToken) {
     try {
-        $decoded = JWT::decode($jwt, new Key(SECRET_KEY, 'HS256'));
+        $decoded = JWT::decode($authToken, new Key(SECRET_KEY, 'HS256'));
         return $decoded->data;
     } catch (Exception $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid token: ' . $e->getMessage()]);
+        echo json_encode([
+            'status' => 'error', 
+            'message' => 'Invalid token: ' . $e->getMessage()
+        ]);
         exit();
     }
 }
 
-$userData = decodeJWT($jwt);
+$userData = decodeJWT($authToken);
 $action = $_GET['action'] ?? null;
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 switch ($action) {
     case 'retrieveArchivedItem':
         if ($requestMethod === 'POST') {
-            Permission::checkRole($jwt, ['admin']);
+            Permission::checkRole($authToken, ['admin']);
 
             $data = json_decode(file_get_contents('php://input'), true);
             $item_id = $data['item_id'] ?? 0;
@@ -51,7 +58,7 @@ switch ($action) {
 
     case 'deleteArchivedItem':
         if ($requestMethod === 'DELETE') {
-            Permission::checkRole($jwt, ['admin']);
+            Permission::checkRole($authToken, ['admin']);
 
             $data = json_decode(file_get_contents('php://input'), true);
             $item_id = $data['item_id'] ?? 0;
@@ -68,21 +75,21 @@ switch ($action) {
         }
         break;
 
-        case 'getAllArchivedItems':
-          if ($requestMethod === 'GET') {
-              Permission::checkRole($jwt, ['admin']);
-      
-              $responsePayload = $archiveModel->getAllArchivedItems();
-      
-              if ($responsePayload['status'] === 'error') {
-                  echo json_encode($response->responsePayload(null, 'error', $responsePayload['message'], 500));
-              } else {
-                  echo json_encode($response->responsePayload($responsePayload['data'], 'success', 'Archived items retrieved successfully.', 200));
-              }
-          } else {
-              echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
-          }
-          break;      
+    case 'getAllArchivedItems':
+        if ($requestMethod === 'GET') {
+            Permission::checkRole($authToken, ['admin']);
+
+            $responsePayload = $archiveModel->getAllArchivedItems();
+
+            if ($responsePayload['status'] === 'error') {
+                echo json_encode($response->responsePayload(null, 'error', $responsePayload['message'], 500));
+            } else {
+                echo json_encode($response->responsePayload($responsePayload['data'], 'success', 'Archived items retrieved successfully.', 200));
+            }
+        } else {
+            echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
+        }
+        break;
 
     default:
         $response->notFound();

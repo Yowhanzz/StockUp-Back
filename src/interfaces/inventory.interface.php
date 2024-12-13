@@ -2,7 +2,7 @@
 
 interface InventoryInterface {
 
-  public function createItem($itemName, $category, $quantity);
+  public function createItem($itemName, $brand, $category, $quantity);
 
   public function readItems();
 

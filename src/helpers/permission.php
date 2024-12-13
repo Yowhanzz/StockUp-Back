@@ -11,19 +11,26 @@ use Firebase\JWT\Key;
 
 class Permission
 {
-    public static function authorizeRole($jwt, array $allowedRoles= [])
+    public static function authorizeRole($jwt, array $allowedRoles = [])
     {
-        $allowedRoles = (['admin', 'staff']);
-        
+        $authToken = $_COOKIE['auth_token'] ?? null;
+
+        if (!$authToken) {
+            return [
+                'status' => 'error',
+                'message' => 'Authorization token is missing or invalid.',
+            ];
+        }
+
         try {
             // Decode the token
-            $decoded = JWT::decode($jwt, new Key(SECRET_KEY, 'HS256'));
+            $decoded = JWT::decode($authToken, new Key(SECRET_KEY, 'HS256'));
 
             // Extract user role from the token payload
             $userRole = $decoded->data->role;
 
             // Check if the role is blacklisted
-            if (self::isTokenBlacklisted($jwt)) {
+            if (self::isTokenBlacklisted($authToken)) {
                 return [
                     'status' => 'error',
                     'message' => 'Token is blacklisted',
@@ -66,24 +73,26 @@ class Permission
 
     public static function checkRole($jwt, array $allowedRoles = [])
     {
-        if (empty($jwt)) {
+        $authToken = $_COOKIE['auth_token'] ?? null;
+
+        if (!$authToken) {
             http_response_code(401); // Unauthorized
             echo json_encode(['status' => 'error', 'message' => 'Authorization token is missing or invalid.']);
             exit();
         }
-    
+
         try {
             // Decode the JWT
-            $decoded = JWT::decode($jwt, new Key(SECRET_KEY, 'HS256'));
+            $decoded = JWT::decode($authToken, new Key(SECRET_KEY, 'HS256'));
             $role = $decoded->data->role ?? null;
-    
+
             // Check if the role exists and is allowed
             if (!$role || !in_array($role, $allowedRoles)) {
                 http_response_code(403); // Forbidden
                 echo json_encode(['status' => 'error', 'message' => 'Unauthorized role.']);
                 exit();
             }
-    
+
             // Role is authorized
             return true;
         } catch (Exception $e) {
@@ -92,5 +101,4 @@ class Permission
             exit();
         }
     }
-    
 }
