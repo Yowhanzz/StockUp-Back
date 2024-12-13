@@ -10,7 +10,7 @@ interface InventoryInterface {
 
   public function deleteItem($itemId);
 
-  public function sortItemsByCategory();
+  public function sortItemsByCategory($specificCategory = null);
 
   public function getItemsByStatus($status);
 
@@ -20,10 +20,8 @@ interface InventoryInterface {
   
   public function updateQuantityValue($item_id, $new_quantity);
 
-  public function logChange($item_id, $change_type, $old_value, $new_value);
-
-  public function getLogs();
-
   public function logUserAction($jwt, $functionName);
+
+  public function getAllUserLogs();
 
 }

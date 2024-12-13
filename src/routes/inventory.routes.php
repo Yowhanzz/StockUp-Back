@@ -96,6 +96,73 @@ switch ($action) {
         }
         break;
 
+    case 'sortItemsByCategory':
+        if ($requestMethod === 'GET') {
+            Permission::checkRole($jwt, ['admin', 'staff']);
+
+            $specificCategory = $_GET['category'] ?? null;
+            $inventoryModel->logUserAction($jwt, 'sortItemsByCategory');
+            $items = $inventoryModel->sortItemsByCategory($specificCategory);
+
+            echo json_encode($response->responsePayload($items, 'success', 'Items sorted by category successfully.', 200));
+        } else {
+            echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
+        }
+        break;
+
+    case 'getItemsByStatus':
+        if ($requestMethod === 'GET') {
+            Permission::checkRole($jwt, ['admin', 'staff']);
+
+            $status = $_GET['status'] ?? '';
+            $inventoryModel->logUserAction($jwt, 'getItemsByStatus');
+            $items = $inventoryModel->getItemsByStatus($status);
+
+            echo json_encode($response->responsePayload($items, 'success', 'Items retrieved by status successfully.', 200));
+        } else {
+            echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
+        }
+        break;
+
+    case 'getItemsByQuantityDesc':
+        if ($requestMethod === 'GET') {
+            Permission::checkRole($jwt, ['admin', 'staff']);
+
+            $inventoryModel->logUserAction($jwt, 'getItemsByQuantityDesc');
+            $items = $inventoryModel->getItemsByQuantityDesc();
+
+            echo json_encode($response->responsePayload($items, 'success', 'Items sorted by quantity (descending) successfully.', 200));
+        } else {
+            echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
+        }
+        break;
+
+    case 'getItemsByQuantityAsc':
+        if ($requestMethod === 'GET') {
+            Permission::checkRole($jwt, ['admin', 'staff']);
+
+            $inventoryModel->logUserAction($jwt, 'getItemsByQuantityAsc');
+            $items = $inventoryModel->getItemsByQuantityAsc();
+
+            echo json_encode($response->responsePayload($items, 'success', 'Items sorted by quantity (ascending) successfully.', 200));
+        } else {
+            echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
+        }
+        break;
+
+        case 'getAllUserLogs':
+            if ($requestMethod === 'GET') {
+                Permission::checkRole($jwt, ['admin']);
+    
+                $inventoryModel->logUserAction($jwt, 'getAllUserLogs');
+                $logs = $inventoryModel->getAllUserLogs();
+    
+                echo json_encode($response->responsePayload($logs, 'success', 'User logs retrieved successfully.', 200));
+            } else {
+                echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
+            }
+            break;
+
     default:
         $response->notFound();
         break;

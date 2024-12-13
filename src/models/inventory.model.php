@@ -63,8 +63,6 @@ class InventoryModel implements InventoryInterface
         return ['status' => 'success', 'message' => 'Quantity and status updated successfully'];
     }
 
-    // Delete item (Admin only)
-// Delete item (Admin only)
 public function deleteItem($itemId)
 {
     // Check if the item exists in the inventory
@@ -107,14 +105,25 @@ public function deleteItem($itemId)
     ];
 }
 
+public function sortItemsByCategory($specificCategory = null)
+{
+    // Define the allowed categories
+    $allowedCategories = ['Writing Supplies', 'Paper Materials', 'Arts & Crafts', 'Organizational Tools', 'Miscellaneous'];
 
-    // Sort items by category
-    public function sortItemsByCategory()
-    {
+    if ($specificCategory && in_array($specificCategory, $allowedCategories)) {
+        // If a specific category is provided and valid, fetch items from that category
+        $sql = "SELECT * FROM inventory WHERE category = :category ORDER BY category";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':category' => $specificCategory]);
+    } else {
+        // Otherwise, fetch all items sorted by category
         $sql = "SELECT * FROM inventory ORDER BY category";
         $stmt = $this->db->query($sql);
-        return $stmt->fetchAll();
     }
+
+    return $stmt->fetchAll();
+}
+
 
     // Get items by individual stock statuses
     public function getItemsByStatus($status)
@@ -156,61 +165,7 @@ public function deleteItem($itemId)
         return ['status' => 'error', 'message' => 'Item not found.'];
     }
 
-    $old_quantity = $currentData['quantity'];
-
-    // Update the quantity
-    $sqlUpdate = "UPDATE inventory SET quantity = :new_quantity WHERE id = :item_id";
-    $stmtUpdate = $pdo->prepare($sqlUpdate);
-    $stmtUpdate->bindParam(':new_quantity', $new_quantity, PDO::PARAM_INT);
-    $stmtUpdate->bindParam(':item_id', $item_id, PDO::PARAM_INT);
-
-    if ($stmtUpdate->execute()) {
-        // Log the update
-        $this->logChange($item_id, 'quantity_update', $old_quantity, $new_quantity);
-        return ['status' => 'success', 'message' => 'Quantity updated successfully.'];
-    }
-
     return ['status' => 'error', 'message' => 'Failed to update quantity.'];
-    }
-
-// Log function
-    public function logChange($item_id, $change_type, $old_value, $new_value)
-    {
-    $pdo = (new Connection())->connect();
-
-    // Decode JWT to get user info
-    $headers = apache_request_headers();
-    $jwt = $headers['Authorization'] ?? null;
-    if ($jwt) {
-        $jwt = str_replace('Bearer ', '', $jwt);
-    }
-
-    try {
-        $decoded = \Firebase\JWT\JWT::decode($jwt, new \Firebase\JWT\Key(SECRET_KEY, 'HS256'));
-        $updated_by = $decoded->data->username;
-    } catch (\Exception $e) {
-        $updated_by = 'unknown'; // Default to unknown if decoding fails
-    }
-
-    // Insert log into the database
-    $sqlLog = "INSERT INTO logs (item_id, updated_by, change_type, old_value, new_value) 
-               VALUES (:item_id, :updated_by, :change_type, :old_value, :new_value)";
-    $stmtLog = $pdo->prepare($sqlLog);
-    $stmtLog->bindParam(':item_id', $item_id, PDO::PARAM_INT);
-    $stmtLog->bindParam(':updated_by', $updated_by, PDO::PARAM_STR);
-    $stmtLog->bindParam(':change_type', $change_type, PDO::PARAM_STR);
-    $stmtLog->bindParam(':old_value', $old_value, PDO::PARAM_STR);
-    $stmtLog->bindParam(':new_value', $new_value, PDO::PARAM_STR);
-    $stmtLog->execute();
-    }
-
-    public function getLogs()
-    {
-    $pdo = (new Connection())->connect();
-    $sql = "SELECT * FROM logs ORDER BY timestamp DESC";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute();
-    return $stmt->fetchAll();
     }
 
     public function logUserAction($jwt, $functionName)
@@ -233,4 +188,21 @@ public function deleteItem($itemId)
             throw new Exception("Failed to log user action: Invalid JWT.");
         }
     }
+
+    public function getAllUserLogs()
+{
+    try {
+        $sql = "SELECT * FROM user_logs ORDER BY timestamp DESC";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        error_log("Error fetching user logs: " . $e->getMessage());
+        return [
+            'status' => 'error',
+            'message' => 'Failed to retrieve user logs.'
+        ];
+    }
+}
+
+
 }
