@@ -13,4 +13,10 @@ interface AuthInterface {
   public function blacklistToken($token);
 
   public function endSession($user_id);
+
+  public function getDecodedJWT();
+
+  public function hasRole($role);
+
+  public function checkRoleAccess($requiredRole);
 }

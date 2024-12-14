@@ -164,6 +164,32 @@ switch ($action) {
             echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
         }
         break;
+    
+        case 'getItemByName':
+            if ($requestMethod === 'POST') { // Change to POST
+                Permission::checkRole($jwt, ['admin', 'staff']);
+        
+                // Decode JSON payload
+                $data = json_decode(file_get_contents('php://input'), true);
+                $itemName = $data['item_name'] ?? '';
+        
+                if (empty($itemName)) {
+                    echo json_encode($response->responsePayload(null, 'error', 'Item name is required.', 400));
+                    break;
+                }
+        
+                $inventoryModel->logUserAction($jwt, 'getItemByName');
+                $responsePayload = $inventoryModel->getItemByName($itemName);
+        
+                if ($responsePayload['status'] === 'error') {
+                    echo json_encode($response->responsePayload(null, 'error', $responsePayload['message'], 404));
+                } else {
+                    echo json_encode($response->responsePayload($responsePayload['data'], 'success', 'Item retrieved successfully.', 200));
+                }
+            } else {
+                echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
+            }
+            break;        
 
     default:
         $response->notFound();

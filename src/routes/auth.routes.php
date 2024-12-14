@@ -1,4 +1,5 @@
 <?php
+ // Allow credentials (if needed, like cookies)
 
 require_once __DIR__ . '/../controllers/authController.php';
 

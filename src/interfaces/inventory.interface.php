@@ -24,4 +24,6 @@ interface InventoryInterface {
 
   public function getAllUserLogs();
 
+  public function getItemByName($itemName);
+
 }

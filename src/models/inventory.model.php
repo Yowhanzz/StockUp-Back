@@ -182,4 +182,31 @@ public function sortItemsByCategory($specificCategory = null)
             ];
         }
     }
+
+    public function getItemByName($itemName)
+{
+    try {
+        $sql = "SELECT * FROM inventory WHERE item_name = :item_name";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':item_name' => $itemName]);
+        $item = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$item) {
+            return [
+                'status' => 'error',
+                'message' => 'Item not found.'
+            ];
+        }
+
+        return [
+            'status' => 'success',
+            'data' => $item
+        ];
+    } catch (Exception $e) {
+        return [
+            'status' => 'error',
+            'message' => 'Failed to retrieve the item. ' . $e->getMessage()
+        ];
+    }
+}
 }

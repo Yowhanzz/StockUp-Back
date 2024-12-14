@@ -12,7 +12,9 @@ use Firebase\JWT\Key;
 class Permission
 {
     public static function authorizeRole($jwt, array $allowedRoles = [])
+ 
     {
+        $allowedRoles = ['admin', 'staff']; 
         $authToken = $_COOKIE['auth_token'] ?? null;
 
         if (!$authToken) {

@@ -150,4 +150,39 @@ class AuthModel extends Connection implements AuthInterface
 
     return $stmt->execute();
     }
+
+    public function getDecodedJWT()
+    {
+        if (isset($_COOKIE['auth_token'])) {
+            $jwt = $_COOKIE['auth_token'];
+            try {
+                // Decode the JWT using the secret key.
+                $decoded = JWT::decode($jwt, new Key($this->secret_key, 'HS256'));
+                return (array) $decoded->data;  // Return the payload data as an array.
+            } catch (Exception $e) {
+                // Handle errors (e.g., token expired, invalid signature)
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public function hasRole($role)
+    {
+        $decodedData = $this->getDecodedJWT();
+        
+        // Check if the decoded JWT data exists and if the role matches
+        if ($decodedData && isset($decodedData['role']) && $decodedData['role'] === $role) {
+            return true;
+        }
+        return false;
+    }
+
+    public function checkRoleAccess($requiredRole)
+    {
+        if ($this->hasRole($requiredRole)) {
+            return true;
+        }
+        return false;
+    }
 }

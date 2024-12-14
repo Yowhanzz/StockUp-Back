@@ -1,9 +1,11 @@
 <?php
+header("Access-Control-Allow-Origin: http://localhost:8080");  // Adjust if you have other origins
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");  // Allow the methods you need
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");  // Allow necessary headers
+header("Access-Control-Allow-Credentials: true"); 
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-
-header('Content-Type: application/json');
 
 // Load required files
 require_once __DIR__ . '/routes/auth.routes.php';
@@ -44,12 +46,13 @@ switch ($action) {
         echo is_array($response) ? json_encode($response) : $response;
         exit;
 
-    case 'logout':
-        $authController = new AuthController();
-        $input = json_decode(file_get_contents('php://input'), true);
-        $response = $authController->logout($input);
-        echo is_array($response) ? json_encode($response) : $response;
-        exit;
+        case 'logout':
+            // Remove the JWT from cookies by setting it with an expired time
+            setcookie('jwt', '', time() - 3600, '/');  // Expire the JWT cookie
+            $response = ['status' => 'success', 'message' => 'Logged out successfully.'];
+            echo json_encode($response);
+            exit;
+        
 
     default:
         echo json_encode(["status" => "error", "message" => "No action provided."]);
