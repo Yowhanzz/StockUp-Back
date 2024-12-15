@@ -119,6 +119,7 @@
     <ul>
       <li><a href="dashboard.html">Dashboard</a></li>
       <li><a href="inventory.html">Inventory</a></li>
+      <li><a href="help.html">Inventory</a></li>
       <li><a href="stockreport.html">Stock Report</a></li>
       <li><a href="logintracker.html">Login Tracker</a></li>
     </ul>
@@ -126,7 +127,7 @@
 
   <!-- Search Bar -->
   <div class="search-bar">
-    <input type="text" id="search" placeholder="Search by User ID or Full Name">
+    <input type="text" id="search" placeholder="Search by Full Name">
     <button onclick="loadSessions()">Search</button>
   </div>
 
@@ -153,67 +154,76 @@
 
     // Function to load sessions and display them
     async function loadSessions() {
-      const query = document.getElementById('search').value.trim();
+  const query = document.getElementById('search').value.trim();  // Get the search input
+  let url = `${BASE_URL}/Session/getAllSessions`;  // Default URL for fetching all sessions
 
-      try {
-        let url = `${BASE_URL}/Session/getSessions`; // Base URL to fetch all sessions
+  // If there's a search term (not empty), update the URL to search by full_name
+  if (query !== "") {
+    url = `${BASE_URL}/Session/getSessionsByFullName`;  // Endpoint for searching by full name
+  }
 
-        // If a search term is entered, modify the URL to filter
-        if (query !== "") {
-          if (isNaN(query)) {
-            // If it's a string, search by full_name
-            url += `?full_name=${query}`;
-          } else {
-            // If it's a number, search by user_id
-            url += `?user_id=${query}`;
-          }
-        }
+  console.log("Request URL:", url);  // Log the request URL for debugging
 
-        console.log("Request URL:", url); // Log the request URL for debugging
+  // Prepare the request body (only if searching by full name)
+  let requestBody = {};
+  if (query !== "") {
+    requestBody = { full_name: query };  // Send full_name in the request body if searching
+  }
 
-        // Show loading message
-        document.getElementById('loadingMessage').style.display = 'block';
+  try {
+    // Show loading message
+    document.getElementById('loadingMessage').style.display = 'block';
 
-        // Fetch session data
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
+    // Fetch data from the appropriate endpoint
+    const response = await fetch(url, {
+      method: query ? 'POST' : 'GET', // POST if searching, GET for all sessions
+      headers: {
+        'Content-Type': 'application/json', // Set content type to JSON
+      },
+      body: query ? JSON.stringify(requestBody) : null, // Only include body if searching
+    });
 
-        const data = await response.json();
-
-        // Check if the response is valid and contains payload
-        if (response.ok && data.status && data.payload) {
-          const sessions = data.payload;
-
-          // Only display user_id, full_name, time_in, time_out
-          let sessionsHTML = '';
-          sessions.forEach(session => {
-            sessionsHTML += `
-              <tr>
-                <td>${session.user_id}</td>
-                <td>${session.full_name}</td>
-                <td>${session.time_in}</td>
-                <td>${session.time_out ? session.time_out : 'N/A'}</td>
-              </tr>
-            `;
-          });
-
-          // Populate table with the session data
-          document.querySelector('#sessionsTable tbody').innerHTML = sessionsHTML;
-        } else {
-          document.querySelector('#sessionsTable tbody').innerHTML = '<tr><td colspan="4">No sessions found.</td></tr>';
-        }
-
-      } catch (error) {
-        document.querySelector('#sessionsTable tbody').innerHTML = `<tr><td colspan="4">Network Error: ${error.message}</td></tr>`;
-      } finally {
-        // Hide loading message
-        document.getElementById('loadingMessage').style.display = 'none';
-      }
+    // Check if the response is valid (HTTP status is OK)
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
+
+    // Parse the response JSON
+    const data = await response.json();
+    console.log("Response Data:", data);  // Log the response data for debugging
+
+    // Check if the response contains a status and payload
+    if (data.status && data.payload) {
+      const sessions = data.payload;
+
+      // If there are sessions, populate the table with session data
+      let sessionsHTML = '';
+      sessions.forEach(session => {
+        sessionsHTML += `
+          <tr>
+            <td>${session.user_id}</td>
+            <td>${session.full_name}</td>
+            <td>${session.time_in}</td>
+            <td>${session.time_out ? session.time_out : 'N/A'}</td>
+          </tr>
+        `;
+      });
+
+      // Populate the table body with the session data
+      document.querySelector('#sessionsTable tbody').innerHTML = sessionsHTML;
+    } else {
+      // If no sessions found, show a message
+      document.querySelector('#sessionsTable tbody').innerHTML = '<tr><td colspan="4">No sessions found.</td></tr>';
+    }
+
+  } catch (error) {
+    console.error("Error:", error);  // Log any error for debugging
+    document.querySelector('#sessionsTable tbody').innerHTML = `<tr><td colspan="4">Error: ${error.message}</td></tr>`;
+  } finally {
+    // Hide the loading message when done
+    document.getElementById('loadingMessage').style.display = 'none';
+  }
+}
 
     // Load all sessions initially
     loadSessions();

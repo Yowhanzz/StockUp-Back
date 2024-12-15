@@ -1,524 +1,548 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Report</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Report</title>
+  <style>
+    /* Basic Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-* {
-    margin: 0; 
-    padding: 0;
-    outline: 0;
-    appearance: none;
-    border: 0;
-    text-decoration: none;
-    list-style: none;
-    box-sizing: border-box;
-}
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f7fc;
+      color: #333;
+      line-height: 1.6;
+    }
 
-html {
-     font-size:14px; 
-}
+    header {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 0;
+      text-align: center;
+    }
 
-body {
-    background: url(bg.png) ;
-    width: 100vw;
-    height: 100vh;
-    font-family: poppins, sans-serif;
-    font-size: 0.88rem;
-    background-color: rgb(160, 173, 237);
-    user-select: none; 
-    overflow-x:hidden;  
-    color: #363949;
-}
+    nav ul {
+      display: flex;
+      justify-content: center;
+      padding: 10px;
+      background-color: #444;
+      list-style-type: none;
+    }
 
-.container {
-    display: grid;
-    width: calc(100% - 14rem); /* Adjust the width to account for the sidebar */
-    margin-left: 17rem; /* Add margin to the left to avoid overlap */
-    gap: 1.8rem;
-    grid-template-columns: auto; /* Change to a single column layout */
-}
+    nav ul li {
+      margin: 0 15px;
+    }
 
-a{
-    color: #363636;
-}
+    nav ul li a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+    }
 
-img {
-    display: block;
-    width: 100%;
-}
+    h1 {
+      text-align: center;
+      margin-top: 20px;
+    }
 
-h1{ 
-    font-weight: 800;
-    font-size: 1.8rem;
-}
+    .search-bar {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
 
-h2{ 
-    font-size: 1.4rem;
-}
+    .search-bar input {
+      padding: 10px;
+      font-size: 16px;
+      width: 300px;
+      margin-right: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
 
-h3{
-    font-size: 0.87rem;
-}
+    .search-bar button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #5cb85c;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
 
-.text-muted{
-    color: 
-    .;lvvvvl#7d8da1;
-}
+    .search-bar button:hover {
+      background-color: #4cae4c;
+    }
 
-h4{
-    font-size: 0.87;
-}
+    #itemsTable {
+      width: 80%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background-color: #fff;
+    }
 
-p{
-    color: #677483;
-}
+    #itemsTable th, #itemsTable td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
 
-b{
-    color: #677483;
-}
+    #itemsTable th {
+      background-color: #f2f2f2;
+    }
 
-aside{
-    height: 100vh;  
-    background-color: white;
-    position: fixed; /* Fix the sidebar to the left */
-    left: 0; /* Position it to the left */
-    top: 0; /* Align it to the top */
-    width: 14rem; /* Set a specific width for the sidebar */
-    z-index: 10; /* Ensure it is above other content */
-}
+    #itemsTable tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
 
-aside .top{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 1.4rem;
-    margin-left:2rem ;
-}
+    #loadingMessage {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 18px;
+    }
 
-/* aside .logo img {
-    width: 150px; this if for the img logo
- */
- 
+    .action-buttons button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #5cb85c;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 0 10px;
+    }
 
-aside .logo {
-    display:flex;
-    gap:0.8rem;
-    position: relative;
-   
-}
- aside .logo img {
-    width: 2rem;
-    height: 2rem;
- }
-
- aside .close{
-    display: none;
- }
-
- /* ===============side bar ============ */
-
- aside .sidebar{
-    /* background-color: white; */
-    background:white;
-    display: flex;
-    flex-direction: column; 
-    height: 86vh;
-    position: relative;
-    top: 3rem;
- }
-
- aside h3 {
-    font-weight: 500;
-
- }
-
- aside .sidebar a {
-    display: flex;
-    color: #677483;
-    margin-left: 2rem;
-    gap: 1rem;
-    align-items: center;
-    position: relative;
-    height: 3.7rem;
-    transition:  all 300ms ease;
-
- }
- /* ============ */
- aside .sidebar a span { 
-    transition: all 300ms ease;
- }
-
-
- aside .sidebar a span{ 
-    font-size: 1.6rem;
-    transition: all 300ms ease; 
- }
-
-aside .sidebar a:last-child{
-    position: absolute;
-    bottom: 2rem;
-    width: 100% ;
-}
-
-aside .sidebar a.active {
-    background: aqua;
-    color: blue;
-    margin-left: 0;
-}
-
-aside .sidebar a.active:before{
-    content: '';
-    width: 6px; 
-    height: 100%;
-    background: blue;
-}
-
-aside .sidebar a.active span{
-    color: blue;
-    margin-left: calc(1rem - 3px);
-}
-
-aside .sidebar a:hover{
-    color: var(#f74d4d)
-}
-
-aside .sidebar a:hover span {
- margin-left: 1rem;
-}
-
-
-
-/* Main Content */
-main{ 
-    margin-top: 2rem;
-}
-
-main .dash-text{
-    color: black;
-}
-
-
-main b{
-    color: white;
-}
-
- /* STOCK TABLE */
-.stock-table {
-  width: 1190px;
-  margin-top: 3rem;
-  padding: 1rem;
-  background-color: white; 
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
-  overflow: hidden;
-  margin-left: 2rem;
-}
-
-.stock-table table {
-  width: 100%;
-  border-collapse: collapse; 
-}
-
-.stock-table th {
-  background-color: #363636; 
-  color: white; 
-  padding: 1rem;
-  text-align: left; 
-  font-size: 1rem;
-  border-bottom: 2px solid #ddd; 
-}
-
-.stock-table td {
-  padding: 1rem;
-  font-size: 1rem;
-  border-bottom: 1px solid #ddd; 
-}
-
-.stock-table td:last-child {
-  font-weight: bold;
-  color: #2596be; 
-}
-
-.stock-table tr:hover {
-  background-color: #f0f0f0; 
-}      
-/* END OF STOCK TABLE */
-
-        /* Button Styles */
-        .button-container {
-            display: flex;
-            gap: 25px;
-            justify-content: center;
-            margin-top: 3rem;
-            width:50%;
-            margin-left: 22rem;
-        }
-
-        button {
-            padding: 1rem 2rem;
-            border: none;
-            background-color: #363636;
-            color: white;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #00ffff;
-            color: #0000ff;
-        }
-
-        /* Bottom Buttons */
-        .download-buttons {
-            position: fixed;
-            bottom: 20px;
-            right: 4rem;
-            display: flex;
-            gap: 10px;
-        }
-
-        .download-buttons button {
-            background-color: #363636;
-            color: white;
-            border-radius: 8px;
-            padding: 1rem 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .download-buttons button:hover {
-            background-color: #00ffff;
-            color: #0000ff;
-        }
-    </style>
+    .action-buttons button:hover {
+      background-color: #4cae4c;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <aside>
-            <div class="top">
-                <div class="logo">
-                    <img src="img/logo.png" alt=logo">
-                    <h2 class="stock_up">Stock Up</h2>
-                </div>
-                 <div class = "close" id = "close-btn">
-                    <span class="material-icons-sharp">close</span>
-                 </div>
-            </div>
 
-            <div class="sidebar">
-                <a href="index.html">
-                    <span class="material-icons-sharp">grid_view</span>
-                    <h3>Dashbord</h3>
-                </a>
+  <!-- Header Section -->
+  <header>
+    <h1>Stock Report</h1>
+  </header>
 
-                <a href="inventory.html">
-                    <span class="material-icons-sharp">inventory</span>
-                    <h3>Inventory</h3>
-                </a>
+  <!-- Navigation Bar -->
+  <nav>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="inventory.html">Inventory</a></li>
+      <li><a href="help.html">Inventory</a></li>
+      <li><a href="stockreport.html">Stock Report</a></li>
+      <li><a href="logintracker.html">Login Tracker</a></li>
+    </ul>
+  </nav>
 
-                <a href="stockreport.html" class="active">
-                    <span class="material-icons-sharp">bar_chart</span>
-                    <h3>Stock Report</h3>
-                </a>
+  <!-- Search Bar -->
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="Search by Item Name">
+    <button onclick="loadItemsByName()">Search</button>
+  </div>
 
-                <a href="logintracker.html" >
-                    <span class="material-icons-sharp">track_changes</span>
-                    <h3>Login Tracker</h3>
-                </a>
+  <!-- Action Buttons for Endpoints -->
+  <div class="action-buttons" style="text-align: center; margin-top: 20px;">
+    <button onclick="sortItemsByCategory()">Sort by Category</button>
+    <button onclick="getItemsByStatus()">Get by Status</button>
+    <button onclick="getItemsByQuantityDesc()">Sort by Quantity (Desc)</button>
+    <button onclick="getItemsByQuantityAsc()">Sort by Quantity (Asc)</button>
+    <button onclick="getItemsByNameOrder()">Sort by Name</button>
+  </div>
 
-                <a href="help.html" >
-                    <span class="material-icons-sharp">help</span>
-                    <h3>Help Support</h3>
-                </a>                
+  <!-- Items Table -->
+  <table id="itemsTable">
+    <thead>
+      <tr>
+        <th>Item ID</th>
+        <th>Item Name</th>
+        <th>Category</th>
+        <th>Status</th>
+        <th>Quantity</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Items will be dynamically added here -->
+    </tbody>
+  </table>
 
-                <a href="#">
-                    <span class="material-icons-sharp">logout</span>
-                    <h3>Logout</h3>
-                </a>
-            </div>
-        </aside>
-        <!------------------- END OF NAV BAR -------------------------- -->
-        <main>
-                <h1 class="dash-text">Stock Report</h1>
+  <!-- Loading Message -->
+  <div id="loadingMessage" style="display:none;">
+    <p>Loading items...</p>
+  </div>
 
-            <div class="button-container">
-                <button id="stockReportBtn"><b>STOCK REPORT</b></button>
-                <button id="inStockBtn"><b>IN STOCK REPORT</b></button>
-                <button id="lowStockBtn"><b>LOW STOCK REPORT</b></button>
-            </div>
-            
-            <div class="stock-table">
-                <table id="stockTable">
-                    <thead>
-                        <tr>
-                            <th>Item ID</th>
-                            <th>Item Name</th>
-                            <th>Brand</th>
-                            <th>Category</th>
-                            <th>Current Stock</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr data-stock="150">
-                            <td>001</td>
-                            <td>Whiteboard Marker</td>
-                            <td>Sharpie</td>
-                            <td>Writing Supplies</td>
-                            <td>150</td>
-                            <td>High</td>
-                        </tr>
-                        <tr data-stock="80">
-                            <td>002</td>
-                            <td>Notebook</td>
-                            <td>Classmate</td>
-                            <td>Paper Products</td>
-                            <td>80</td>
-                            <td>High</td>
-                        </tr>
-                        <tr data-stock="50">
-                            <td>003</td>
-                            <td>Glue Stick</td>
-                            <td>Elmers</td>
-                            <td>Arts & Crafts Materials</td>
-                            <td>50</td>
-                            <td>Average</td>
-                        </tr>
-                        <tr data-stock="200">
-                            <td>004</td>
-                            <td>Pencil</td>
-                            <td>Faber-Castell</td>
-                            <td>Writing Supplies</td>
-                            <td>200</td>
-                            <td>High</td>
-                        </tr>
-                        <tr data-stock="25">
-                            <td>005</td>
-                            <td>Binder Clips</td>
-                            <td>PaperPro</td>
-                            <td>Organizational Tools</td>
-                            <td>25</td>
-                            <td>Low</td>
-                        </tr>
-                    </tbody>            
-                </table>
-            </div>
+  <script>
+    const BASE_URL = 'http://localhost/STOCKUP/Backend/public';
 
-            <div class="download-buttons">
-                <button onclick="downloadExcel()">Download Excel</button>
-                <button onclick="downloadPDF()">Download PDF</button>
-            </div>
-        </main>
-    </div>
-    <script>
-        const stockData = [
-            { id: '001', name: 'Whiteboard Marker', brand: 'Sharpie', category: 'Writing Supplies', stock: 150, status: 'High' },
-            { id: '002', name: 'Notebook', brand: 'Classmate', category: 'Paper Products', stock: 80, status: 'High' },
-            { id: '003', name: 'Glue Stick', brand: 'Elmers', category: 'Arts & Crafts Materials', stock: 50, status: 'Average' },
-            { id: '004', name: 'Pencil', brand: 'Faber-Castell', category: 'Writing Supplies', stock: 200, status: 'High' },
-            { id: '005', name: 'Binder Clips', brand: 'PaperPro', category: 'Organizational Tools', stock: 25, status: 'Low' }
-        ];
-    
-        let currentReportType = "Stock Report"; 
-    
-        document.getElementById('stockReportBtn').addEventListener('click', function() {
-            currentReportType = "Stock Report"; 
-            displayStockReport(stockData.sort((a, b) => b.stock - a.stock));
+    // Function to search items by name
+    async function searchItems() {
+      const query = document.getElementById('search').value.trim();
+      if (query !== '') {
+        await getItemByName(query);
+      }
+    }
+
+    // Function to load all items
+    async function loadAllItems() {
+      document.getElementById('loadingMessage').style.display = 'block';
+      try {
+        const response = await fetch(`${BASE_URL}/Inventory/getAllItems`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',  // Include cookies for authentication
         });
-    
-        document.getElementById('inStockBtn').addEventListener('click', function() {
-            currentReportType = "In Stock Report"; 
-            const inStockItems = stockData.filter(item => item.status === 'High' || item.status === 'Average');
-            inStockItems.sort((a, b) => b.stock - a.stock);
-            displayStockReport(inStockItems);
-        });
-    
-        document.getElementById('lowStockBtn').addEventListener('click', function() {
-            currentReportType = "Low Stock Report";
-            const lowStockItems = stockData.filter(item => item.status === 'Low');
-            displayStockReport(lowStockItems);
-        });
-    
-        function displayStockReport(items) {
-            const tbody = document.querySelector('#stockTable tbody');
-            tbody.innerHTML = ''; 
-            items.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.id}</td>
-                    <td>${item.name}</td>
-                    <td>${item.brand}</td>
-                    <td>${item.category}</td>
-                    <td>${item.stock}</td>
-                    <td>${item.status}</td>
-                `;
-                tbody.appendChild(row);
-            });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
-    
-        function downloadExcel() {
-    const table = document.querySelector("#stockTable"); 
-    if (!table) {
-        console.error("Table not found!");
+
+        const data = await response.json();
+        if (data.status && data.payload) {
+          const items = data.payload;
+          let itemsHTML = '';
+          items.forEach(item => {
+            itemsHTML += `
+              <tr>
+                <td>${item.item_id}</td>
+                <td>${item.item_name}</td>
+                <td>${item.category}</td>
+                <td>${item.status}</td>
+                <td>${item.quantity}</td>
+              </tr>
+            `;
+          });
+          document.querySelector('#itemsTable tbody').innerHTML = itemsHTML;
+        } else {
+          document.querySelector('#itemsTable tbody').innerHTML = '<tr><td colspan="5">No items found.</td></tr>';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        document.querySelector('#itemsTable tbody').innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`;
+      } finally {
+        document.getElementById('loadingMessage').style.display = 'none';
+      }
+    }
+
+    // Function to sort items by category
+    async function sortItemsByCategory() {
+    const category = prompt("Enter category to sort by:");
+    if (!category) return;
+
+    const requestBody = { category: category }; // Data to be sent to the server
+
+    document.getElementById('loadingMessage').style.display = 'block'; // Show loading message
+
+    try {
+        const response = await fetch(`${BASE_URL}/Inventory/sortItemsByCategory`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody), // Sending category to the backend
+        });
+
+        // Handle non-OK responses
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json(); // Parse the response
+
+        // Check if the response contains sorted items
+        if (data.status === 'success' && data.payload) {
+            const items = data.payload;
+            let itemsHTML = '';
+            items.forEach(item => {
+                itemsHTML += `
+                    <tr>
+                        <td>${item.item_id}</td>
+                        <td>${item.item_name}</td>
+                        <td>${item.category}</td>
+                        <td>${item.status}</td>
+                        <td>${item.quantity}</td>
+                    </tr>
+                `;
+            });
+
+            // Update the table with sorted items
+            document.querySelector('#itemsTable tbody').innerHTML = itemsHTML;
+        } else {
+            document.querySelector('#itemsTable tbody').innerHTML = '<tr><td colspan="5">No items found.</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        document.querySelector('#itemsTable tbody').innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`;
+    } finally {
+        document.getElementById('loadingMessage').style.display = 'none'; // Hide loading message
+    }
+}
+
+
+    // Function to get items by status
+    async function getItemsByStatus() {
+    const status = prompt("Enter status to filter by:");
+    if (!status) return;
+
+    const requestBody = { status: status }; // Data to be sent to the server
+
+    document.getElementById('loadingMessage').style.display = 'block'; // Show loading message
+
+    try {
+        const response = await fetch(`${BASE_URL}/Inventory/getItemsByStatus`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody), // Sending status to the backend
+        });
+
+        // Handle non-OK responses
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json(); // Parse the response
+
+        // Check if the response contains items filtered by status
+        if (data.status === 'success' && data.payload) {
+            const items = data.payload;
+            let itemsHTML = '';
+            items.forEach(item => {
+                itemsHTML += `
+                    <tr>
+                        <td>${item.item_id}</td>
+                        <td>${item.item_name}</td>
+                        <td>${item.category}</td>
+                        <td>${item.status}</td>
+                        <td>${item.quantity}</td>
+                    </tr>
+                `;
+            });
+
+            // Update the table with filtered items
+            document.querySelector('#itemsTable tbody').innerHTML = itemsHTML;
+        } else {
+            document.querySelector('#itemsTable tbody').innerHTML = '<tr><td colspan="5">No items found.</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        document.querySelector('#itemsTable tbody').innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`;
+    } finally {
+        document.getElementById('loadingMessage').style.display = 'none'; // Hide loading message
+    }
+}
+
+
+    // Function to get items sorted by quantity descending
+    async function getItemsByQuantityDesc() {
+      document.getElementById('loadingMessage').style.display = 'block';
+      try {
+        const response = await fetch(`${BASE_URL}/Inventory/getItemsByQuantityDesc`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.status && data.payload) {
+          const items = data.payload;
+          let itemsHTML = '';
+          items.forEach(item => {
+            itemsHTML += `
+              <tr>
+                <td>${item.item_id}</td>
+                <td>${item.item_name}</td>
+                <td>${item.category}</td>
+                <td>${item.status}</td>
+                <td>${item.quantity}</td>
+              </tr>
+            `;
+          });
+          document.querySelector('#itemsTable tbody').innerHTML = itemsHTML;
+        } else {
+          document.querySelector('#itemsTable tbody').innerHTML = '<tr><td colspan="5">No items found.</td></tr>';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        document.querySelector('#itemsTable tbody').innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`;
+      } finally {
+        document.getElementById('loadingMessage').style.display = 'none';
+      }
+    }
+
+    // Function to get items sorted by quantity ascending
+    async function getItemsByQuantityAsc() {
+      document.getElementById('loadingMessage').style.display = 'block';
+      try {
+        const response = await fetch(`${BASE_URL}/Inventory/getItemsByQuantityAsc`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.status && data.payload) {
+          const items = data.payload;
+          let itemsHTML = '';
+          items.forEach(item => {
+            itemsHTML += `
+              <tr>
+                <td>${item.item_id}</td>
+                <td>${item.item_name}</td>
+                <td>${item.category}</td>
+                <td>${item.status}</td>
+                <td>${item.quantity}</td>
+              </tr>
+            `;
+          });
+          document.querySelector('#itemsTable tbody').innerHTML = itemsHTML;
+        } else {
+          document.querySelector('#itemsTable tbody').innerHTML = '<tr><td colspan="5">No items found.</td></tr>';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        document.querySelector('#itemsTable tbody').innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`;
+      } finally {
+        document.getElementById('loadingMessage').style.display = 'none';
+      }
+    }
+
+    // Function to get items sorted by name
+    async function getItemsByNameOrder() {
+      document.getElementById('loadingMessage').style.display = 'block';
+      try {
+        const response = await fetch(`${BASE_URL}/Inventory/getItemsByNameOrder`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.status && data.payload) {
+          const items = data.payload;
+          let itemsHTML = '';
+          items.forEach(item => {
+            itemsHTML += `
+              <tr>
+                <td>${item.item_id}</td>
+                <td>${item.item_name}</td>
+                <td>${item.category}</td>
+                <td>${item.status}</td>
+                <td>${item.quantity}</td>
+              </tr>
+            `;
+          });
+          document.querySelector('#itemsTable tbody').innerHTML = itemsHTML;
+        } else {
+          document.querySelector('#itemsTable tbody').innerHTML = '<tr><td colspan="5">No items found.</td></tr>';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        document.querySelector('#itemsTable tbody').innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`;
+      } finally {
+        document.getElementById('loadingMessage').style.display = 'none';
+      }
+    }
+
+    async function loadItemsByName() {
+    const itemName = document.getElementById('search').value.trim();  // Get the search input
+    let url = `${BASE_URL}/Inventory/getItemByName`;  // Endpoint for searching a specific item
+
+    if (itemName === "") {
+        // If no item name is provided, show an error message
+        document.getElementById('errorMessage').innerText = "Item name is required.";
         return;
     }
 
-    const workbook = XLSX.utils.table_to_book(table, { sheet: "Stock Report" });
+    // Prepare the request body with the item name
+    const requestBody = { item_name: itemName };
 
-    const fileName = `StockReport_${new Date().toLocaleDateString().replace(/\//g, '-')}_${formatTime(new Date())}.xlsx`;
-    console.log("Generating Excel file:", fileName);
+    try {
+        // Show loading message
+        document.getElementById('loadingMessage').style.display = 'block';
 
-    XLSX.writeFile(workbook, fileName);
-}
-    
-    
-function downloadPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+        const response = await fetch(url, {
+            method: 'POST',  // POST request to search for the item
+            headers: {
+                'Content-Type': 'application/json',  // Set content type to JSON
+            },
+            body: JSON.stringify(requestBody),  // Send the item name in the request body
+        });
 
-    const logo = new Image();
-    logo.src = 'img/logo.png'; 
-
-    logo.onload = function() {
-        doc.addImage(logo, 'PNG', 10, 10, 30, 30); 
-        doc.setFontSize(14);
-        doc.text("Stock Up", 50, 20); 
-        doc.text(`Report Type: ${currentReportType}`, 50, 30); 
-        doc.text(`Date: ${new Date().toLocaleDateString()} ${formatTime(new Date())}`, 50, 40); 
-
-        doc.autoTable({ html: "#stockTable", startY: 60 });
-        const fileName = `StockReport_${new Date().toLocaleDateString().replace(/\//g, '-')}_${formatTime(new Date())}.pdf`;
-        doc.save(fileName);
-    };
-
-    logo.onerror = function() {
-        console.error('Failed to load logo image.');
-        doc.setFontSize(14);
-        doc.text("Stock Up", 10, 10); 
-        doc.text(`Report Type: ${currentReportType}`, 10, 20); 
-        doc.text(`Date: ${new Date().toLocaleDateString()} ${formatTime(new Date())}`, 10, 30); 
-
-        doc.autoTable({ html: "#stockTable", startY: 40 });
-        const fileName = `StockReport_${new Date().toLocaleDateString().replace(/\//g, '-')}_${formatTime(new Date())}.pdf`;
-        doc.save(fileName);
-    };
-}
-    
-        function formatTime(date) {
-            const hours = date.getHours();
-            const minutes = date.getMinutes();
-            const ampm = hours >= 12 ? 'pm' : 'am';
-            return `${hours % 12 || 12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+        // Check if the response is valid (HTTP status is OK)
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
-    </script>
+
+        // Parse the response JSON
+        const data = await response.json();
+        console.log('Response Data:', data);  // Log the complete response to check its structure
+
+        // Check if the response contains the expected payload
+        if (data.status && data.status.remarks === 'success' && data.payload) {
+            const item = data.payload;
+
+            // Ensure the item exists and display it
+            const itemId = item.item_id || 'N/A';  // Fallback to 'N/A' if not found
+            const itemName = item.item_name || 'Unknown';  // Fallback to 'Unknown' if not found
+            const category = item.category || 'Miscellaneous';  // Fallback to 'Miscellaneous' if not found
+            const status = item.status || 'Very Low';  // Fallback to 'Very Low' if not found
+            const quantity = item.quantity || 0;  // Fallback to 0 if quantity not found
+
+            // Populate the table with the item data
+            const itemHTML = `
+                <tr>
+                    <td>${itemId}</td>
+                    <td>${itemName}</td>
+                    <td>${category}</td>
+                    <td>${status}</td>
+                    <td>${quantity}</td>
+                </tr>
+            `;
+            document.querySelector('#itemsTable tbody').innerHTML = itemHTML;
+
+        } else {
+            // If no payload or status is not success, show an error message
+            console.log("Item not found or invalid response status.");
+            document.querySelector('#itemsTable tbody').innerHTML = '<tr><td colspan="5">Item not found.</td></tr>';
+        }
+
+    } catch (error) {
+        console.error("Error:", error);  // Log any error for debugging
+        document.querySelector('#itemsTable tbody').innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`;
+    } finally {
+        // Hide the loading message when done
+        document.getElementById('loadingMessage').style.display = 'none';
+    }
+}
+
+
+    // Load all items when the page is loaded
+    window.onload = loadAllItems;
+  </script>
 </body>
 </html>

@@ -4,41 +4,182 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Backend Connection</title>
+  <style>
+    /* Global Reset for all elements */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+
+    /* Body Styling */
+    body {
+      background-color: #f4f4f4;
+      color: #333;
+      line-height: 1.6;
+      font-size: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    /* Container for forms */
+    .container {
+      background-color: #fff;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #2c3e50;
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      color: #16a085;
+      margin-bottom: 20px;
+    }
+
+    /* Form Styling */
+    label {
+      font-size: 16px;
+      color: #333;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"], input[type="password"], input[type="submit"] {
+      padding: 10px;
+      margin: 10px 0;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      background-color: #f9f9f9;
+    }
+
+    input[type="submit"] {
+      background-color: #16a085;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #1abc9c;
+    }
+
+    /* Result messages */
+    #loginResult, #registerResult {
+      margin-top: 15px;
+      color: #e74c3c;
+      font-size: 14px;
+    }
+
+    /* Button Styling */
+    button {
+      background-color: #34495e;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #2c3e50;
+    }
+
+    /* Modal Styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+      overflow: auto;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 80%;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    /* Responsive Design */
+    @media screen and (max-width: 768px) {
+      .container {
+        padding: 30px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Inventory System</h1>
+  <div class="container">
+    <h1>Inventory System</h1>
   
-  <!-- Login Form -->
-  <h2>Login</h2>
-  <div id="loginResult"></div>
-  <form id="loginForm">
-    <label for="username">Username:</label>
-    <input type="text" id="username" name="username" required />
-    <br />
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" required />
-    <br />
-    <button type="submit">Login</button>
-  </form>
+    <!-- Login Form -->
+    <h2>Login</h2>
+    <div id="loginResult"></div>
+    <form id="loginForm">
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required />
+      <br />
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required />
+      <br />
+      <button type="submit">Login</button>
+    </form>
 
-  <!-- Registration Form -->
-  <h2>Register</h2>
-  <div id="registerResult"></div>
-  <form id="registerForm">
-    <label for="full_name">Full Name:</label>
-    <input type="text" id="full_name" name="full_name" required />
-    <br />
-    <label for="register_username">Username:</label>
-    <input type="text" id="register_username" name="username" required />
-    <br />
-    <label for="register_password">Password:</label>
-    <input type="password" id="register_password" name="password" required />
-    <br />
-    <label for="check_password">Confirm Password:</label>
-    <input type="password" id="check_password" name="check_password" required />
-    <br />
-    <button type="submit">Register</button>
-  </form>
+    <!-- Registration Form -->
+    <h2>Register</h2>
+    <div id="registerResult"></div>
+    <form id="registerForm">
+      <label for="full_name">Full Name:</label>
+      <input type="text" id="full_name" name="full_name" required />
+      <br />
+      <label for="register_username">Username:</label>
+      <input type="text" id="register_username" name="username" required />
+      <br />
+      <label for="register_password">Password:</label>
+      <input type="password" id="register_password" name="password" required />
+      <br />
+      <label for="check_password">Confirm Password:</label>
+      <input type="password" id="check_password" name="check_password" required />
+      <br />
+      <button type="submit">Register</button>
+    </form>
+  </div>
 
   <script>
     // Base URL of your backend

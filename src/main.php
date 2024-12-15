@@ -124,16 +124,18 @@ switch ($module) {
                     echo json_encode($response->responsePayload($responsePayload, 'success', 'Item deleted successfully.', 200));
                     break;
         
-                case 'GET:sortItemsByCategory':
+                case 'POST:sortItemsByCategory':
                     Permission::checkRole($jwt, ['admin', 'staff']);
-                    $category = $_GET['category'] ?? null;
+                    $category = $data['category'] ?? '';
+                    $data = json_decode(file_get_contents('php://input'), true);
                     $sortedItems = $inventoryModel->sortItemsByCategory($category);
                     echo json_encode($response->responsePayload($sortedItems, 'success', 'Items sorted by category successfully.', 200));
                     break;
         
-                case 'GET:getItemsByStatus':
+                case 'POST:getItemsByStatus':
                     Permission::checkRole($jwt, ['admin', 'staff']);
-                    $status = $_GET['status'] ?? '';
+                    $status = $data['status'] ?? '';
+                    $data = json_decode(file_get_contents('php://input'), true);
                     $items = $inventoryModel->getItemsByStatus($status);
                     echo json_encode($response->responsePayload($items, 'success', 'Items retrieved by status successfully.', 200));
                     break;
@@ -168,7 +170,7 @@ switch ($module) {
                     echo json_encode($response->responsePayload($logs, 'success', 'User logs retrieved successfully.', 200));
                     break;
         
-                case 'GET:getItemByName':
+                case 'POST:getItemByName':
                     Permission::checkRole($jwt, ['admin', 'staff']);
                     $data = json_decode(file_get_contents('php://input'), true);
                     $itemName = $data['item_name'] ?? '';
@@ -201,34 +203,37 @@ switch ($module) {
             break;
         
 
-    case 'Session':
-        $sessionModel = new SessionModel();
-        switch ($requestMethod . ':' . $action) {
-            case 'GET:getSessions':
-                Permission::checkRole($jwt, ['admin']);
-        
-                // Fetch query parameters (user_id or full_name)
-                $user_id = $_GET['user_id'] ?? null;
-                $full_name = $_GET['full_name'] ?? null;
-        
-                // Conditional logic based on provided parameters
-                if ($user_id) {
-                    $sessions = $sessionModel->getSessionsByUserId($user_id);
-                } elseif ($full_name) {
-                    $sessions = $sessionModel->getSessionsByFullName($full_name);
-                } else {
-                    $sessions = $sessionModel->getAllSessions();
+            case 'Session':
+                $sessionModel = new SessionModel();
+                $inputData = json_decode(file_get_contents('php://input'), true);
+                switch ($requestMethod . ':' . $action) {
+                    case 'GET:getSessionsByUserId':
+                        $user_id = $inputData['user_id'] ?? null;
+                        if ($user_id) {
+                            echo json_encode($response->responsePayload($sessionModel->getSessionsByUserId($user_id), 'success', 'Sessions retrieved successfully.', 200));
+                        } else {
+                            echo json_encode($response->responsePayload(null, 'error', 'User ID is required.', 400));
+                        }
+                        break;
+            
+                    case 'POST:getSessionsByFullName':
+                        $full_name = $inputData['full_name'] ?? null;
+                        if ($full_name) {
+                            echo json_encode($response->responsePayload($sessionModel->getSessionsByFullName($full_name), 'success', 'Sessions retrieved successfully.', 200));
+                        } else {
+                            echo json_encode($response->responsePayload(null, 'error', 'Full name is required.', 400));
+                        }
+                        break;
+            
+                    case 'GET:getAllSessions':
+                        echo json_encode($response->responsePayload($sessionModel->getAllSessions(), 'success', 'All sessions retrieved successfully.', 200));
+                        break;
+            
+                    default:
+                        echo json_encode($response->responsePayload(null, 'error', 'Invalid action for Session.', 400));
+                        break;
                 }
-        
-                // Return the response
-                echo json_encode($response->responsePayload($sessions, 'success', 'Sessions retrieved successfully.', 200));
                 break;
-
-            default:
-                echo json_encode($response->responsePayload(null, 'error', 'Invalid action for Sessions.', 400));
-                break;
-        }
-        break;
 
     default:
         http_response_code(404);
