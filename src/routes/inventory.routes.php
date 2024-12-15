@@ -1,7 +1,8 @@
 <?php
-require_once '../models/inventory.model.php';
-require_once '../helpers/permission.php';
-require_once '../models/response.model.php';
+require_once __DIR__ . '/../models/inventory.model.php';
+require_once __DIR__ . '/../helpers/permission.php';
+require_once __DIR__ . '/../models/response.model.php';
+
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -14,9 +15,9 @@ if (!$jwt) {
     echo json_encode(['status' => 'error', 'message' => 'Token not found']);
     exit();
 }
+
 function decodeJWT($jwt) {
     try {
-
         $decoded = JWT::decode($jwt, new Key(SECRET_KEY, 'HS256'));
         return $decoded->data;
     } catch (Exception $e) {
@@ -26,7 +27,7 @@ function decodeJWT($jwt) {
 }
 
 $userData = decodeJWT($jwt);
-$action = $_GET['action'] ?? null;
+$action = $action ?? null;
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 switch ($action) {
@@ -164,32 +165,82 @@ switch ($action) {
             echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
         }
         break;
-    
-        case 'getItemByName':
-            if ($requestMethod === 'POST') { // Change to POST
-                Permission::checkRole($jwt, ['admin', 'staff']);
-        
-                // Decode JSON payload
-                $data = json_decode(file_get_contents('php://input'), true);
-                $itemName = $data['item_name'] ?? '';
-        
-                if (empty($itemName)) {
-                    echo json_encode($response->responsePayload(null, 'error', 'Item name is required.', 400));
-                    break;
-                }
-        
-                $inventoryModel->logUserAction($jwt, 'getItemByName');
-                $responsePayload = $inventoryModel->getItemByName($itemName);
-        
-                if ($responsePayload['status'] === 'error') {
-                    echo json_encode($response->responsePayload(null, 'error', $responsePayload['message'], 404));
-                } else {
-                    echo json_encode($response->responsePayload($responsePayload['data'], 'success', 'Item retrieved successfully.', 200));
-                }
-            } else {
-                echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
+
+    case 'getUserLogsByFullName':
+        if ($requestMethod === 'POST') {
+            Permission::checkRole($jwt, ['admin']);
+
+            $data = json_decode(file_get_contents('php://input'), true);
+            $fullName = $data['full_name'] ?? '';
+
+            if (empty($fullName)) {
+                echo json_encode($response->responsePayload(null, 'error', 'Full name is required.', 400));
+                break;
             }
-            break;        
+
+            $inventoryModel->logUserAction($jwt, 'getUserLogsByFullName');
+            $logs = $inventoryModel->getUserLogsByFullName($fullName);
+
+            if (empty($logs)) {
+                echo json_encode($response->responsePayload(null, 'error', 'No logs found for the specified user.', 404));
+            } else {
+                echo json_encode($response->responsePayload($logs, 'success', 'User logs retrieved successfully.', 200));
+            }
+        } else {
+            echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
+        }
+        break;
+
+    case 'getItemByName':
+        if ($requestMethod === 'POST') {
+            Permission::checkRole($jwt, ['admin', 'staff']);
+
+            $data = json_decode(file_get_contents('php://input'), true);
+            $itemName = $data['item_name'] ?? '';
+
+            if (empty($itemName)) {
+                echo json_encode($response->responsePayload(null, 'error', 'Item name is required.', 400));
+                break;
+            }
+
+            $inventoryModel->logUserAction($jwt, 'getItemByName');
+            $responsePayload = $inventoryModel->getItemByName($itemName);
+
+            if ($responsePayload['status'] === 'error') {
+                echo json_encode($response->responsePayload(null, 'error', $responsePayload['message'], 404));
+            } else {
+                echo json_encode($response->responsePayload($responsePayload['data'], 'success', 'Item retrieved successfully.', 200));
+            }
+        } else {
+            echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
+        }
+        break;
+
+    case 'getItemsByNameOrder':
+        if ($requestMethod === 'GET') {
+            Permission::checkRole($jwt, ['admin', 'staff']);
+
+            $order = $_GET['order'] ?? 'asc';
+
+            $inventoryModel->logUserAction($jwt, 'getItemsByNameOrder');
+            if ($order === 'asc') {
+                $items = $inventoryModel->getItemsByNameAsc();
+            } elseif ($order === 'desc') {
+                $items = $inventoryModel->getItemsByNameDesc();
+            } else {
+                echo json_encode($response->responsePayload(null, 'error', 'Invalid order parameter.', 400));
+                break;
+            }
+
+            if (isset($items['status']) && $items['status'] === 'error') {
+                echo json_encode($response->responsePayload(null, 'error', $items['message'], 500));
+            } else {
+                echo json_encode($response->responsePayload($items, 'success', 'Items sorted by name successfully.', 200));
+            }
+        } else {
+            echo json_encode($response->responsePayload(null, 'error', 'Invalid request method.', 405));
+        }
+        break;
 
     default:
         $response->notFound();

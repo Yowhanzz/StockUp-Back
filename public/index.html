@@ -1,107 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Authentication</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 0;
-        }
-        .form-section {
-            margin-bottom: 30px;
-        }
-        .form-section h2 {
-            font-size: 20px;
-            color: #333;
-        }
-        textarea, input, button {
-            margin: 5px 0;
-            padding: 10px;
-            font-size: 16px;
-            width: 100%;
-            max-width: 400px;
-        }
-        pre {
-            background-color: #f4f4f4;
-            padding: 10px;
-            border: 1px solid #ddd;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Backend Connection</title>
 </head>
 <body>
-    <h1>User Authentication</h1>
+  <h1>Inventory System</h1>
+  
+  <!-- Login Form -->
+  <h2>Login</h2>
+  <div id="loginResult"></div>
+  <form id="loginForm">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required />
+    <br />
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required />
+    <br />
+    <button type="submit">Login</button>
+  </form>
 
-    <!-- Login Form -->
-    <div class="form-section">
-        <h2>Login</h2>
-        <form id="login-form">
-            <input type="text" id="username" placeholder="Username" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
-        <pre id="login-response"></pre>
-    </div>
+  <!-- Registration Form -->
+  <h2>Register</h2>
+  <div id="registerResult"></div>
+  <form id="registerForm">
+    <label for="full_name">Full Name:</label>
+    <input type="text" id="full_name" name="full_name" required />
+    <br />
+    <label for="register_username">Username:</label>
+    <input type="text" id="register_username" name="username" required />
+    <br />
+    <label for="register_password">Password:</label>
+    <input type="password" id="register_password" name="password" required />
+    <br />
+    <label for="check_password">Confirm Password:</label>
+    <input type="password" id="check_password" name="check_password" required />
+    <br />
+    <button type="submit">Register</button>
+  </form>
 
-    <!-- Register Form -->
-    <div class="form-section">
-        <h2>Register</h2>
-        <form id="register-form">
-            <input type="text" id="full-name" placeholder="Full Name" required>
-            <input type="text" id="register-username" placeholder="Username" required>
-            <input type="password" id="register-password" placeholder="Password" required>
-            <button type="submit">Register</button>
-        </form>
-        <pre id="register-response"></pre>
-    </div>
+  <script>
+    // Base URL of your backend
+    const BASE_URL = "http://localhost/STOCKUP/Backend/public";
 
-    <script>
-        const apiBaseUrl = 'http://localhost/OOP/src/routes';
+    // Handle the login form submission
+    document.getElementById('loginForm').addEventListener('submit', async (event) => {
+      event.preventDefault(); // Prevent page reload
 
-        // Login Form Submission
-        document.getElementById('login-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
 
-            const response = await fetch(`${apiBaseUrl}/auth.routes.php?action=login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password }),
-            });
-
-            const result = await response.json();
-            document.getElementById('login-response').textContent = JSON.stringify(result, null, 2);
-
-            if (result.status === 'success') {
-                localStorage.setItem('jwt', result.token); // Save token to localStorage
-                alert('Login successful! Redirecting to inventory page...');
-                window.location.href = 'inventory.html'; // Redirect to inventory page
-            } else {
-                alert(result.message || 'Login failed!');
-            }
+      try {
+        const response = await fetch(`${BASE_URL}/Auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
         });
 
-        // Register Form Submission
-        document.getElementById('register-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const fullName = document.getElementById('full-name').value;
-            const username = document.getElementById('register-username').value;
-            const password = document.getElementById('register-password').value;
+        const data = await response.json();
+        if (response.ok) {
+          document.getElementById('loginResult').textContent = `Login successful: ${JSON.stringify(data)}`;
+          window.location.href = 'dashboard.html';
+        } else {
+          document.getElementById('loginResult').textContent = `Error: ${data.message}`;
+        }
+      } catch (error) {
+        document.getElementById('loginResult').textContent = `Network Error: ${error.message}`;
+      }
+    });
 
-            const response = await fetch(`${apiBaseUrl}/user.routes.php?action=register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ full_name: fullName, username, password }),
-            });
+    // Handle the registration form submission
+    document.getElementById('registerForm').addEventListener('submit', async (event) => {
+      event.preventDefault(); // Prevent page reload
 
-            const result = await response.json();
-            document.getElementById('register-response').textContent = JSON.stringify(result, null, 2);
+      const fullName = document.getElementById('full_name').value;
+      const username = document.getElementById('register_username').value;
+      const password = document.getElementById('register_password').value;
+      const checkPassword = document.getElementById('check_password').value;
 
-            alert(result.message || 'Registration completed!');
+      // Check if passwords match
+      if (password !== checkPassword) {
+        document.getElementById('registerResult').textContent = "Passwords do not match!";
+        return;
+      }
+
+      try {
+        const response = await fetch(`${BASE_URL}/Auth/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ full_name: fullName, username, password }),
         });
-    </script>
+
+        const data = await response.json();
+        if (response.ok) {
+          document.getElementById('registerResult').textContent = `Registration successful: ${JSON.stringify(data)}`;
+        } else {
+          document.getElementById('registerResult').textContent = `Error: ${data.message}`;
+        }
+      } catch (error) {
+        document.getElementById('registerResult').textContent = `Network Error: ${error.message}`;
+      }
+    });
+  </script>
 </body>
 </html>

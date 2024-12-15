@@ -1,8 +1,8 @@
 <?php
 
-require_once '../models/archive.model.php';
-require_once '../helpers/permission.php';
-require_once '../models/response.model.php';
+require_once __DIR__ . '/../models/archive.model.php';
+require_once __DIR__ . '/../helpers/permission.php';
+require_once __DIR__ . '/../models/response.model.php';
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 

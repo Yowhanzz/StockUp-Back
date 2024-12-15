@@ -132,6 +132,34 @@ public function sortItemsByCategory($specificCategory = null)
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll();
     }
+
+    public function getItemsByNameAsc()
+{
+    try {
+        $sql = "SELECT * FROM inventory ORDER BY item_name ASC";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        return [
+            'status' => 'error',
+            'message' => 'Failed to retrieve items in ascending order. ' . $e->getMessage()
+        ];
+    }
+}
+
+public function getItemsByNameDesc()
+{
+    try {
+        $sql = "SELECT * FROM inventory ORDER BY item_name DESC";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        return [
+            'status' => 'error',
+            'message' => 'Failed to retrieve items in descending order. ' . $e->getMessage()
+        ];
+    }
+}
     public function updateQuantityValue($item_id, $new_quantity)
     {
     $pdo = (new Connection())->connect();
@@ -182,6 +210,22 @@ public function sortItemsByCategory($specificCategory = null)
             ];
         }
     }
+
+    public function getUserLogsByFullName($fullName)
+{
+    try {
+        $sql = "SELECT * FROM user_logs WHERE full_name = :full_name ORDER BY timestamp DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':full_name', $fullName, PDO::PARAM_STR);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        return [
+            'status' => 'error',
+            'message' => 'Failed to retrieve user logs for the specified full name.'
+        ];
+    }
+}
 
     public function getItemByName($itemName)
 {

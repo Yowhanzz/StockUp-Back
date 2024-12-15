@@ -1,212 +1,334 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Management</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .section {
-            margin-bottom: 30px;
-        }
-        .section h2 {
-            font-size: 18px;
-            color: #333;
-        }
-        input, select, button {
-            margin: 5px 0;
-            padding: 10px;
-            font-size: 16px;
-        }
-        pre {
-            background-color: #f9f9f9;
-            padding: 10px;
-            border: 1px solid #ddd;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory</title>
+  <style>
+    /* Basic styles for navigation bar */
+    nav {
+      background-color: #333;
+      overflow: hidden;
+    }
+
+    nav a {
+      float: left;
+      display: block;
+      color: white;
+      text-align: center;
+      padding: 14px 20px;
+      text-decoration: none;
+      font-size: 17px;
+    }
+
+    nav a:hover {
+      background-color: #ddd;
+      color: black;
+    }
+
+    /* Table styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    /* Form and button styling */
+    .action-btn {
+      margin: 10px;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .action-btn:hover {
+      background-color: #45a049;
+    }
+
+    /* Modal styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+      overflow: auto;
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    /* Form styling */
+    input[type="text"], input[type="number"], input[type="submit"] {
+      padding: 8px;
+      margin: 5px;
+    }
+
+  </style>
 </head>
 <body>
-    <h1>Inventory Management</h1>
-    <div id="auth-message"></div>
+  <!-- Navigation Bar -->
+  <nav>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="help_center.html">Help Center</a>
+    <a href="inventory.html">Inventory</a>
+    <a href="stock_report.html">Stock Report</a>
+    <a href="login_tracker.html">Login Tracker</a>
+  </nav>
 
-    <!-- Add Item -->
-    <div class="section">
-        <h2>Add Item</h2>
-        <form id="add-item-form">
-            <input type="text" id="item-name" placeholder="Item Name" required>
-            <input type="text" id="category" placeholder="Category">
-            <input type="number" id="quantity" placeholder="Quantity" required>
-            <button type="submit">Add Item</button>
-        </form>
-        <pre id="add-item-response"></pre>
+  <h1>Inventory Management</h1>
+
+  <!-- Table for displaying items -->
+  <table id="itemsTable">
+    <thead>
+      <tr>
+        <th>Item ID</th>
+        <th>Item Name</th>
+        <th>Brand</th>
+        <th>Category</th>
+        <th>Quantity</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows will be inserted here -->
+    </tbody>
+  </table>
+
+  <!-- Buttons to open modals -->
+  <button class="action-btn" id="addItemBtn">Add Item</button>
+  <button class="action-btn" id="updateItemBtn">Update Quantity</button>
+  <button class="action-btn" id="deleteItemBtn">Delete Item</button>
+
+  <!-- Add Item Modal -->
+  <div id="addItemModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeAddItemModal">&times;</span>
+      <h2>Add Item</h2>
+      <form id="addItemForm">
+        <input type="text" id="item_name" placeholder="Item Name" required />
+        <input type="text" id="brand" placeholder="Brand" />
+        <input type="text" id="category" placeholder="Category" required />
+        <input type="number" id="quantity" placeholder="Quantity" required />
+        <input type="submit" class="action-btn" value="Add Item" />
+      </form>
     </div>
+  </div>
 
-    <!-- Get All Items -->
-    <div class="section">
-        <h2>Get All Items</h2>
-        <button id="get-items">Fetch Items</button>
-        <pre id="get-items-response"></pre>
+  <!-- Update Quantity Modal -->
+  <div id="updateItemModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeUpdateItemModal">&times;</span>
+      <h2>Update Quantity</h2>
+      <form id="updateQuantityForm">
+        <input type="number" id="update_item_id" placeholder="Item ID" required />
+        <input type="number" id="update_quantity" placeholder="New Quantity" required />
+        <input type="submit" class="action-btn" value="Update Quantity" />
+      </form>
     </div>
+  </div>
 
-    <!-- Update Quantity -->
-    <div class="section">
-        <h2>Update Quantity</h2>
-        <form id="update-quantity-form">
-            <input type="number" id="update-item-id" placeholder="Item ID" required>
-            <input type="number" id="update-quantity" placeholder="Quantity" required>
-            <button type="submit">Update Quantity</button>
-        </form>
-        <pre id="update-quantity-response"></pre>
+  <!-- Delete Item Modal -->
+  <div id="deleteItemModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeDeleteItemModal">&times;</span>
+      <h2>Delete Item</h2>
+      <form id="deleteItemForm">
+        <input type="number" id="delete_item_id" placeholder="Item ID" required />
+        <input type="submit" class="action-btn" value="Delete Item" />
+      </form>
     </div>
+  </div>
 
-    <!-- Delete Item -->
-    <div class="section">
-        <h2>Delete Item</h2>
-        <form id="delete-item-form">
-            <input type="number" id="delete-item-id" placeholder="Item ID" required>
-            <button type="submit">Delete Item</button>
-        </form>
-        <pre id="delete-item-response"></pre>
-    </div>
+  <script>
+    // Base URL of your backend
+    const BASE_URL = "http://localhost/STOCKUP/Backend/public";
 
-    <!-- Sort Items -->
-    <div class="section">
-        <h2>Sort Items</h2>
-        <button id="sort-category">Sort by Category</button>
-        <button id="sort-quantity-asc">Sort by Quantity (Ascending)</button>
-        <button id="sort-quantity-desc">Sort by Quantity (Descending)</button>
-        <pre id="sort-response"></pre>
-    </div>
+    // Function to load items and display them in a table
+    async function loadItems() {
+      try {
+        const response = await fetch(`${BASE_URL}/Inventory/getAllItems`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            // Add authentication token if needed
+            // 'Authorization': 'Bearer <JWT_TOKEN>'
+          }
+        });
 
-    <div class="section">
-      <h2>View Logs</h2>
-      <button id="view-logs">Fetch Logs</button>
-      <pre id="logs-response"></pre>
-    </div>
+        const data = await response.json();
+        if (response.ok && data.status && data.payload) {
+          const items = data.payload; // Display all items
 
-    <script>
-        const apiBaseUrl = 'http://localhost/OOP/src/routes';
-        const jwt = localStorage.getItem('jwt');
+          let itemsHTML = '';
+          items.forEach(item => {
+            itemsHTML += `
+              <tr>
+                <td>${item.item_id}</td>
+                <td>${item.item_name}</td>
+                <td>${item.brand || 'N/A'}</td>
+                <td>${item.category}</td>
+                <td>${item.quantity}</td>
+                <td>${item.status}</td>
+                <td>
+                  <button class="action-btn" onclick="openUpdateModal(${item.item_id})">Update</button>
+                  <button class="action-btn" onclick="openDeleteModal(${item.item_id})">Delete</button>
+                </td>
+              </tr>
+            `;
+          });
 
-        // Redirect if JWT is missing
-        if (!jwt) {
-            alert('Unauthorized! Redirecting to login page...');
-            window.location.href = 'auth.html';
+          document.querySelector('#itemsTable tbody').innerHTML = itemsHTML;
         } else {
-            document.getElementById('auth-message').innerText = 'Authenticated!';
+          document.querySelector('#itemsTable tbody').innerHTML = '<tr><td colspan="7">Error: Invalid response format or no items found.</td></tr>';
         }
+      } catch (error) {
+        document.querySelector('#itemsTable tbody').innerHTML = `<tr><td colspan="7">Network Error: ${error.message}</td></tr>`;
+      }
+    }
 
-        // Add Item
-        document.getElementById('add-item-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const itemName = document.getElementById('item-name').value;
-            const category = document.getElementById('category').value || 'Miscellaneous';
-            const quantity = parseInt(document.getElementById('quantity').value);
+    // Open the modal to add an item
+    document.getElementById('addItemBtn').onclick = function() {
+      document.getElementById('addItemModal').style.display = 'block';
+    };
 
-            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=addItem`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${jwt}`,
-                },
-                body: JSON.stringify({ item_name: itemName, category, quantity }),
-            });
+    // Close the modal for adding an item
+    document.getElementById('closeAddItemModal').onclick = function() {
+      document.getElementById('addItemModal').style.display = 'none';
+    };
 
-            const result = await response.json();
-            document.getElementById('add-item-response').textContent = JSON.stringify(result, null, 2);
-        });
+    // Open the modal to update an item's quantity
+    function openUpdateModal(item_id) {
+      document.getElementById('update_item_id').value = item_id;
+      document.getElementById('updateItemModal').style.display = 'block';
+    }
 
-        // Get All Items
-        document.getElementById('get-items').addEventListener('click', async () => {
-            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=getAllItems`, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${jwt}` },
-            });
+    // Close the modal for updating an item
+    document.getElementById('closeUpdateItemModal').onclick = function() {
+      document.getElementById('updateItemModal').style.display = 'none';
+    };
 
-            const result = await response.json();
-            document.getElementById('get-items-response').textContent = JSON.stringify(result, null, 2);
-        });
+    // Open the modal to delete an item
+    function openDeleteModal(item_id) {
+      document.getElementById('delete_item_id').value = item_id;
+      document.getElementById('deleteItemModal').style.display = 'block';
+    }
 
-        // Update Quantity
-        document.getElementById('update-quantity-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const itemId = parseInt(document.getElementById('update-item-id').value);
-            const quantity = parseInt(document.getElementById('update-quantity').value);
+    // Close the modal for deleting an item
+    document.getElementById('closeDeleteItemModal').onclick = function() {
+      document.getElementById('deleteItemModal').style.display = 'none';
+    };
 
-            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=updateQuantity`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${jwt}`,
-                },
-                body: JSON.stringify({ item_id: itemId, quantity }),
-            });
+    // Event listener for adding a new item
+    document.getElementById('addItemForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const item_name = document.getElementById('item_name').value;
+      const brand = document.getElementById('brand').value;
+      const category = document.getElementById('category').value;
+      const quantity = document.getElementById('quantity').value;
 
-            const result = await response.json();
-            document.getElementById('update-quantity-response').textContent = JSON.stringify(result, null, 2);
-        });
+      const response = await fetch(`${BASE_URL}/Inventory/POST:addItem`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ item_name, brand, category, quantity }),
+      });
 
-        // Delete Item
-        document.getElementById('delete-item-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const itemId = parseInt(document.getElementById('delete-item-id').value);
+      const data = await response.json();
+      if (response.ok) {
+        alert(data.status.message);
+        loadItems();
+        document.getElementById('addItemModal').style.display = 'none';
+      } else {
+        alert("Error: " + data.status.message);
+      }
+    });
 
-            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=deleteItem`, {
-                method: 'DELETE',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${jwt}`,
-                },
-                body: JSON.stringify({ item_id: itemId }),
-            });
+    // Event listener for updating item quantity
+    document.getElementById('updateQuantityForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const item_id = document.getElementById('update_item_id').value;
+      const quantity = document.getElementById('update_quantity').value;
 
-            const result = await response.json();
-            document.getElementById('delete-item-response').textContent = JSON.stringify(result, null, 2);
-        });
+      const response = await fetch(`${BASE_URL}/Inventory/PUT:updateQuantity`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ item_id, quantity }),
+      });
 
-        // Sort Items
-        document.getElementById('sort-category').addEventListener('click', async () => {
-            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=sortCategories`, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${jwt}` },
-            });
+      const data = await response.json();
+      if (response.ok) {
+        alert(data.status.message);
+        loadItems();
+        document.getElementById('updateItemModal').style.display = 'none';
+      } else {
+        alert("Error: " + data.status.message);
+      }
+    });
 
-            const result = await response.json();
-            document.getElementById('sort-response').textContent = JSON.stringify(result, null, 2);
-        });
+    // Event listener for deleting an item
+    document.getElementById('deleteItemForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const item_id = document.getElementById('delete_item_id').value;
 
-        document.getElementById('sort-quantity-asc').addEventListener('click', async () => {
-            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=sortQuantity&order=asc`, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${jwt}` },
-            });
+      const response = await fetch(`${BASE_URL}/Inventory/DELETE:deleteItem`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ item_id }),
+      });
 
-            const result = await response.json();
-            document.getElementById('sort-response').textContent = JSON.stringify(result, null, 2);
-        });
+      const data = await response.json();
+      if (response.ok) {
+        alert(data.status.message);
+        loadItems();
+        document.getElementById('deleteItemModal').style.display = 'none';
+      } else {
+        alert("Error: " + data.status.message);
+      }
+    });
 
-        document.getElementById('sort-quantity-desc').addEventListener('click', async () => {
-            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=sortQuantity&order=desc`, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${jwt}` },
-            });
-
-            const result = await response.json();
-            document.getElementById('sort-response').textContent = JSON.stringify(result, null, 2);
-        });
-
-        document.getElementById('view-logs').addEventListener('click', async () => {
-            const response = await fetch(`${apiBaseUrl}/inventory.routes.php?action=getLogs`, {
-               method: 'GET',
-              headers: { 'Authorization': `Bearer ${jwt}` },
-            });
-
-            const result = await response.json();
-            document.getElementById('logs-response').textContent = JSON.stringify(result, null, 2);
-        });
-    </script>
+    // Load items when the page is loaded
+    window.onload = loadItems;
+  </script>
 </body>
 </html>
